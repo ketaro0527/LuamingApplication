@@ -23,6 +23,8 @@ public class UpdateUtil {
 	private static final String DELETELIST_NAME = "DeleteList.txt";
 
 	public static boolean update(String dirPath, String apkName, String updateName) {
+		Log.d("Luaming", "Update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+		
 		String oldZipPath = dirPath + "/" + apkName;
 		String updateZipPath = dirPath + "/" + updateName;
 		String tempZipPath = dirPath + "/temp.apk";
@@ -87,7 +89,9 @@ public class UpdateUtil {
 			// Remove old zip file and rename temp zip file
 			File oldFile = new File(oldZipPath);
 			File tempFile = new File(tempZipPath);
+			File updateFile = new File(updateZipPath);
 			tempFile.renameTo(oldFile);
+			updateFile.delete();
 
 			Log.d("Luaming", "Update Complete");
 
