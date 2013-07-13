@@ -1,5 +1,7 @@
 package com.ssm.luaming;
 
+import java.io.File;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -10,54 +12,116 @@ import android.webkit.WebViewClient;
 
 public class LuamingWebViewClient extends WebViewClient {
 	public MainActivity activity;
-	
+
 	public LuamingWebViewClient(MainActivity act) {
 		activity = act;
 	}
-	
+
 	@Override
 	public boolean shouldOverrideUrlLoading(WebView view, String url) {
 		// TODO Auto-generated method stub
 		if (url.startsWith("luaming")) {
-			if (url.contains("account")) {
-				String[] temp = url.split("@");
-				try {
-					JSONObject account = new JSONObject(temp[1]);
-					
+			try {
+				if (url.contains("account")) {
+					String[] temp = url.split("@");
+
+					JSONObject account = new JSONObject(temp[temp.length-1]);
+
 					SharedPreferences sp = activity.getSharedPreferences(MainActivity.LUAMING_PREF, Context.MODE_PRIVATE);
 					SharedPreferences.Editor editor = sp.edit();
 					editor.putInt(MainActivity.LUAMING_ACCOUNT_ID, Integer.parseInt(account.getString("account_id")));
 					editor.putString(MainActivity.LUAMING_ACCESS_TOKEN, account.getString("access_token"));
 					editor.commit();
-				} catch (JSONException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+
+					File dir = new File(MainActivity.mainPath + "/" + account.getString("access_token"));
+					if (!dir.exists())
+						dir.mkdir();
 				}
-			}
-			else if (url.contains("cangoback")) {
-				String[] temp = url.split("@");
-				activity.canGoBack =  Boolean.parseBoolean(temp[1]);
-			}
-			else if (url.endsWith("ok")) {
-				activity.startGame();
-			}						
-			else if (url.endsWith("logout")) {
-				SharedPreferences sp = activity.getSharedPreferences(MainActivity.LUAMING_PREF, Context.MODE_PRIVATE);
-				SharedPreferences.Editor editor = sp.edit();
-				editor.clear();
-				editor.commit();
-				
-				view.loadUrl("javascript: Luaming.initLocalStorage()");
-				view.loadUrl("javascript: Luaming.redirectToHome()");
+				else if (url.contains("cangoback")) {
+					String[] temp = url.split("@");
+					activity.canGoBack =  Boolean.parseBoolean(temp[temp.length-1]);
+				}
+				else if (url.endsWith("ok")) {
+					activity.startGame();
+				}						
+				else if (url.endsWith("logout")) {
+					SharedPreferences sp = activity.getSharedPreferences(MainActivity.LUAMING_PREF, Context.MODE_PRIVATE);
+					SharedPreferences.Editor editor = sp.edit();
+					editor.clear();
+					editor.commit();
+
+					view.loadUrl("javascript: Luaming.initLocalStorage()");
+					view.loadUrl("javascript: Luaming.redirectToHome()");
+				}
+				else if (url.contains("download")) {
+					String[] temp = url.split("@");
+					JSONObject projectInfo = new JSONObject(temp[temp.length-1]);
+					String packageName = projectInfo.getString("package_name");
+					String projectName = "Test";//projectInfo.getString("project_name");
+					int gameId = projectInfo.getInt("game_id");
+					int latestVersion = projectInfo.getInt("latest_version_code");
+					
+					int currentVersion = UpdateUtil.checkVersion(MainActivity.mainPath + "/" + activity.accessToken + "/" + packageName, projectName + ".apk");
+
+					activity.setProjectName(projectName, packageName);
+					SharedPreferences sp = activity.getSharedPreferences(MainActivity.LUAMING_PREF, Context.MODE_PRIVATE);
+					SharedPreferences.Editor editor = sp.edit();
+					// 이미 설치되어 있는 경우
+					if (currentVersion > 0) {
+						// 현재 버전이 최신버전과 동일한 경우
+						if (latestVersion == currentVersion) {
+							activity.startGame();
+						}
+						// 현재 버전이 구버전인 경우
+						else {
+							String latestVersionName = projectInfo.getString("latest_version_name");
+							String currentVersionName = UpdateUtil.checkVersionName(MainActivity.mainPath + "/" + activity.accessToken + "/" + packageName, projectName + ".apk");
+							// 메이저 버전이 같은 경우 => 업데이트
+							if (currentVersionName.startsWith(latestVersionName.substring(0, 1))) {
+								editor.putInt(MainActivity.LUAMING_DOWNLOAD_FOR, MainActivity.DOWNLOAD_FOR_UPDATE);
+								editor.commit();
+								MainActivity.downloadFor = MainActivity.DOWNLOAD_FOR_UPDATE;
+								// 다운로드 시작
+								view.loadUrl("javascript: Luaming.updateDownload(" + gameId + ", " + currentVersion + ")");
+							}
+							// 메이저 버전이 다른 경우 => 새로운 Full 소스 다운로드
+							else {
+								editor.putInt(MainActivity.LUAMING_DOWNLOAD_FOR, MainActivity.DOWNLOAD_FOR_REPLACE);
+								editor.commit();
+								MainActivity.downloadFor = MainActivity.DOWNLOAD_FOR_REPLACE;
+								// 다운로드 시작
+								view.loadUrl("javascript: Luaming.fullDownload(" + gameId + ")");
+							}
+						}
+					}
+					// 설치되어 있지 않은 경우 => Full 소스 다운로드
+					else {
+						// 폴더부터 생성
+						File dir = new File(MainActivity.mainPath + "/" + activity.accessToken + "/" + packageName);
+						if (!dir.exists())
+							dir.mkdir();
+						
+						editor.putInt(MainActivity.LUAMING_DOWNLOAD_FOR, MainActivity.DOWNLOAD_FOR_INSTALL);
+						editor.commit();
+						MainActivity.downloadFor = MainActivity.DOWNLOAD_FOR_INSTALL;
+						
+						// 다운로드 시작
+						view.loadUrl("javascript: Luaming.fullDownload(" + gameId + ")");
+					}
+				}
+
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 			return true;
 		}
-							
+
 		view.loadUrl(url);
-		
+
 		return false;
 	}
-	
+
 	@Override
 	public void onPageFinished(WebView view, String url) {
 		// TODO Auto-generated method stub

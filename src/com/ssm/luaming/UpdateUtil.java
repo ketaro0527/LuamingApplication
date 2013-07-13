@@ -14,8 +14,7 @@ import java.util.zip.ZipOutputStream;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-
-import android.util.Log;
+import org.json.JSONObject;
 
 public class UpdateUtil {
 
@@ -23,11 +22,18 @@ public class UpdateUtil {
 	private static final String DELETELIST_NAME = "DeleteList.txt";
 
 	public static boolean update(String dirPath, String apkName, String updateName) {
-		Log.d("Luaming", "Update!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-		
 		String oldZipPath = dirPath + "/" + apkName;
 		String updateZipPath = dirPath + "/" + updateName;
 		String tempZipPath = dirPath + "/temp.apk";
+		
+		File oldFile = new File(oldZipPath);
+		if (!oldFile.exists())
+			return false;
+		
+		File updateFile = new File(updateZipPath);
+		if (!updateFile.exists())
+			return false;
+		
 		try {
 			ZipFile oldZip = new ZipFile(oldZipPath);
 			ZipFile updateZip = new ZipFile(updateZipPath);
@@ -87,22 +93,30 @@ public class UpdateUtil {
 			zo.close();
 
 			// Remove old zip file and rename temp zip file
-			File oldFile = new File(oldZipPath);
 			File tempFile = new File(tempZipPath);
-			File updateFile = new File(updateZipPath);
 			tempFile.renameTo(oldFile);
 			updateFile.delete();
-
-			Log.d("Luaming", "Update Complete");
-
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			Log.d("Luaming", "Update Failed");
 
 			return false;
 		}
 
+		return true;
+	}
+	
+	public static boolean updateToReplace(String dirPath, String apkName, String updateName) {
+		String oldZipPath = dirPath + "/" + apkName;
+		String updateZipPath = dirPath + "/" + updateName;
+		
+		File oldFile = new File(oldZipPath);
+		File updateFile = new File(updateZipPath);
+		if (!updateFile.exists()) 
+			return false;
+		if (!updateFile.renameTo(oldFile))
+			return false;
+		
 		return true;
 	}
 
@@ -164,5 +178,113 @@ public class UpdateUtil {
 		if (name.startsWith("/") || name.contains(DELETELIST_NAME))
 			return false;
 		return true;
+	}
+	
+	public static int checkVersion(String dirPath, String apkName) {
+		int version = 0;
+		
+		File dir = new File(dirPath);
+		if (!dir.exists())
+			return version;
+		
+		try {
+			ZipFile apkZip = new ZipFile(dirPath + "/" + apkName);
+			for (Enumeration<? extends ZipEntry> e = apkZip.entries(); e.hasMoreElements();) {
+				ZipEntry ze = e.nextElement();
+				if (ze.getName().contains("LuamingProject.json")) {
+					String jsonString = "";
+					
+					InputStream is = apkZip.getInputStream(ze);
+					int bytesRead;
+					while ((bytesRead = is.read(BUFFER)) > 0) {
+						jsonString += new String(BUFFER, 0, bytesRead);
+					}
+					
+					JSONObject projectInfoJson = new JSONObject(jsonString);
+					version = projectInfoJson.getInt("VERSION_CODE");
+					break;
+				}
+			}
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
+		return version;
+	}
+	
+	public static String checkVersionName(String dirPath, String apkName) {
+		String versionName = "0.0.0";
+		
+		File dir = new File(dirPath);
+		if (!dir.exists())
+			return versionName;
+		
+		try {
+			ZipFile apkZip = new ZipFile(dirPath + "/" + apkName);
+			for (Enumeration<? extends ZipEntry> e = apkZip.entries(); e.hasMoreElements();) {
+				ZipEntry ze = e.nextElement();
+				if (ze.getName().contains("LuamingProject.json")) {
+					String jsonString = "";
+					
+					InputStream is = apkZip.getInputStream(ze);
+					int bytesRead;
+					while ((bytesRead = is.read(BUFFER)) > 0) {
+						jsonString += new String(BUFFER, 0, bytesRead);
+					}
+					
+					JSONObject projectInfoJson = new JSONObject(jsonString);
+					versionName = projectInfoJson.getString("VERSION_NAME");
+					break;
+				}
+			}
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
+		return versionName;
+	}
+	
+	public static String checkOrientation(String dirPath, String apkName) {
+		String orientation = "landscape";
+		
+		File dir = new File(dirPath);
+		if (!dir.exists())
+			return orientation;
+		
+		try {
+			ZipFile apkZip = new ZipFile(dirPath + "/" + apkName);
+			for (Enumeration<? extends ZipEntry> e = apkZip.entries(); e.hasMoreElements();) {
+				ZipEntry ze = e.nextElement();
+				if (ze.getName().contains("LuamingProject.json")) {
+					String jsonString = "";
+					
+					InputStream is = apkZip.getInputStream(ze);
+					int bytesRead;
+					while ((bytesRead = is.read(BUFFER)) > 0) {
+						jsonString += new String(BUFFER, 0, bytesRead);
+					}
+					
+					JSONObject projectInfoJson = new JSONObject(jsonString); 
+					orientation = projectInfoJson.getString("ORIENTATION");
+					break;
+				}
+			}
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		
+		return orientation;
 	}
 }

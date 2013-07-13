@@ -4,7 +4,6 @@ import java.io.File;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.DownloadManager.Query;
 import android.app.DownloadManager.Request;
@@ -22,8 +21,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -38,26 +35,32 @@ public class MainActivity extends Activity implements DownloadListener {
 	public static final String LUAMING_PREF = "LUAMING_PREF";
 	public static final String LUAMING_GAME_PATH = "LUAMING_GAME_PATH";
 	public static final String LUAMING_UPDATE_ID = "LUAMING_UPDATE_ID";
+	public static final String LUAMING_DOWNLOAD_FOR = "LUAMING_DOWNLOAD_FOR";
 	public static final String LUAMING_ACCOUNT_ID = "LUAMING_ACCOUNT_ID";
 	public static final String LUAMING_ACCESS_TOKEN = "LUAMING_ACCESS_TOKEN";
 	public static final String LUAMING_MOBILE_URL = "http://210.118.74.81/LuamingMobile/";
 	private static final int UPDATE_START = 0;
 	private static final int UPDATE_COMPLETE = 1;
 	private static final int UPDATE_FAILED = 2;
+	public static final int DOWNLOAD_FOR_INSTALL = 0;
+	public static final int DOWNLOAD_FOR_REPLACE = 1;
+	public static final int DOWNLOAD_FOR_UPDATE = 2;
+	public static int downloadFor = DOWNLOAD_FOR_INSTALL;
 
-	private String mainPath;
-	private String apkName = "HelloDownload.apk";
-	private String updateName = "Update.apk";
+	public static final String mainPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Luaming";
+	private String apkName = "HelloLuaming.apk";
+	private String updateName = "HelloLuaming_Update.apk";
 	private LuamingWebView webview = null;
 	private ImageView splash = null;
 	private boolean isUpdating = false;
-	
+
 	public boolean isFirstTime = true;
 	public boolean hasAccountInfo = false;
 	public int accountId = -1;
 	public String accessToken = "";
+	public String packageName = "";
 	private String startURL = LUAMING_MOBILE_URL;
-	
+
 	public boolean canGoBack = false;
 
 	private ProgressDialog pd;
@@ -79,24 +82,24 @@ public class MainActivity extends Activity implements DownloadListener {
 			}
 
 			if (m.what == UPDATE_START) {
+				isUpdating = true;
 				MainActivity.this.updatePackage();
 			}
 			else if (m.what == UPDATE_COMPLETE) {
+				isUpdating = false;
 				MainActivity.this.startGame();
 			}
 			else if (m.what == UPDATE_FAILED) {
+				isUpdating = false;
 				Toast.makeText(MainActivity.this, "Update Failed", Toast.LENGTH_SHORT).show();
 			}
 		}
 	};
 
-
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);		
-
-		mainPath = Environment.getExternalStorageDirectory().getAbsolutePath();
-		mainPath += "/Luaming";
+		super.onCreate(savedInstanceState);	
+		
 		File LuamingDir = new File(mainPath);
 		if (!LuamingDir.exists())
 			LuamingDir.mkdir();
@@ -106,16 +109,19 @@ public class MainActivity extends Activity implements DownloadListener {
 		accessToken = sp.getString(LUAMING_ACCESS_TOKEN, "");
 		if (accountId != -1 && accessToken.length() > 0) {
 			hasAccountInfo = true;
+			File userDir = new File(mainPath + "/" + accessToken);
+			if (!userDir.exists())
+				userDir.mkdir();
 		}
-		
+
 		setContentView(R.layout.main_layout);
-		
+
 		webview = (LuamingWebView) findViewById(R.id.main_webview);
 		webview.init(this);
 		webview.loadUrl(startURL);
 		webview.setDownloadListener(this);
 		webview.setVisibility(View.INVISIBLE);
-		
+
 		splash = (ImageView) findViewById(R.id.splash);
 		Animation animation = new AlphaAnimation(0.0f, 1.0f);
 		animation.setAnimationListener(new AnimationListener() {
@@ -155,6 +161,7 @@ public class MainActivity extends Activity implements DownloadListener {
 
 		SharedPreferences sp = getSharedPreferences(LUAMING_PREF, MODE_PRIVATE);
 		long id = sp.getLong(LUAMING_UPDATE_ID, -1);
+		downloadFor = sp.getInt(LUAMING_DOWNLOAD_FOR, DOWNLOAD_FOR_INSTALL);
 
 		if (id != -1) {
 			DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
@@ -163,25 +170,22 @@ public class MainActivity extends Activity implements DownloadListener {
 			query.setFilterByStatus(DownloadManager.STATUS_SUCCESSFUL);
 			Cursor cursor = downloadManager.query(query);
 
+			String msg = "";
+			if (downloadFor == DOWNLOAD_FOR_INSTALL)
+				msg = "다운로드가 완료되었습니다.\n실행하시겠습니까?";
+			else
+				msg = "다운로드가 완료되었습니다.\n업데이트를 진행하시겠습니까?";
+
 			if (cursor.getCount() > 0) {
-				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setMessage("다운로드가 완료되었습니다.\n업데이트를 진행하시겠습니까?")
-				.setCancelable(false)
-				.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
+				LuamingDialog dialog = new LuamingDialog(this, LuamingDialog.LUAMING_DIALOG_STYLE_OK_CANCEL);
+				dialog.setOnCancelListener(new OnCancelListener() {				
+					@Override
+					public void onCancel(DialogInterface dialog) {
+						// TODO Auto-generated method stub
 						MainActivity.this.handler.sendEmptyMessage(UPDATE_START);
 					}
-				})
-				.setNegativeButton("No", new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int id) {
-						dialog.cancel();
-					}
 				});
-
-				AlertDialog alert = builder.create();
-				alert.show();
-
-				return;
+				dialog.show(msg);
 			}
 
 			query = new Query();
@@ -226,42 +230,36 @@ public class MainActivity extends Activity implements DownloadListener {
 			webview.loadUrl("javascript: Luaming.backEvent();");
 		}
 	}
-	
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// TODO Auto-generated method stub
-		menu.add(0, 0, 0, "새로고침");
-		return super.onCreateOptionsMenu(menu);
-	}
-
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// TODO Auto-generated method stub
-		switch (item.getItemId()) {
-		case 0:
-			if (webview != null) {
-				webview.reload();
-			}
-			break;
-		}
-		return super.onOptionsItemSelected(item);
-	}
 
 	public void updatePackage() {
-		isUpdating = true;
-
 		pd = ProgressDialog.show(MainActivity.this, "Update", "Please wait...", true);
 		pd.setCancelable(false);
 
 		Thread thread = new Thread() {
 			@Override
 			public void run() {
-				if (UpdateUtil.update(MainActivity.this.mainPath, MainActivity.this.apkName, MainActivity.this.updateName))
-					MainActivity.this.handler.sendEmptyMessage(UPDATE_COMPLETE);
+				if (accessToken.length() > 0) {
+					switch(downloadFor) {
+					case DOWNLOAD_FOR_INSTALL: 
+					case DOWNLOAD_FOR_REPLACE: {
+						if (UpdateUtil.updateToReplace(MainActivity.mainPath + "/" + accessToken + "/" + packageName, MainActivity.this.apkName, MainActivity.this.updateName))
+							MainActivity.this.handler.sendEmptyMessage(UPDATE_COMPLETE);
+						else
+							MainActivity.this.handler.sendEmptyMessage(UPDATE_FAILED);
+					}
+					break;
+					case DOWNLOAD_FOR_UPDATE: {
+						if (UpdateUtil.update(MainActivity.mainPath + "/" + accessToken + "/" + packageName, MainActivity.this.apkName, MainActivity.this.updateName))
+							MainActivity.this.handler.sendEmptyMessage(UPDATE_COMPLETE);
+						else
+							MainActivity.this.handler.sendEmptyMessage(UPDATE_FAILED);
+					}
+					default:
+						break;
+					}
+				}
 				else
 					MainActivity.this.handler.sendEmptyMessage(UPDATE_FAILED);
-
-				MainActivity.this.isUpdating = false;
 
 				SharedPreferences sp = MainActivity.this.getSharedPreferences(LUAMING_PREF, MODE_PRIVATE);
 				SharedPreferences.Editor editor = sp.edit();
@@ -273,8 +271,17 @@ public class MainActivity extends Activity implements DownloadListener {
 	}
 
 	public void startGame() {
-		Intent intent = new Intent(this, Luaming.class);
-		intent.putExtra(LUAMING_GAME_PATH, mainPath + "/" + apkName);
+		String orientation = UpdateUtil.checkOrientation(mainPath + "/" + accessToken + "/" + packageName, apkName);
+
+		// 이동
+		Class<?> cls = null;
+		if ("landscape".equals(orientation.toLowerCase()))
+			cls = Luaming.class;
+		else
+			cls = LuamingPortrait.class;
+
+		Intent intent = new Intent(this, cls);
+		intent.putExtra(LUAMING_GAME_PATH, mainPath + "/" + accessToken + "/" + packageName + "/" + apkName);
 		startActivity(intent);
 	}
 
@@ -311,7 +318,7 @@ public class MainActivity extends Activity implements DownloadListener {
 		request.setTitle(fileName);
 		request.setDescription(url);
 		request.setMimeType(mimeType);
-		request.setDestinationInExternalPublicDir( "/Luaming", updateName);
+		request.setDestinationInExternalPublicDir( "/Luaming/" + accessToken + "/" + packageName, updateName);
 		//Environment.getExternalStoragePublicDirectory( Environment.DIRECTORY_DOWNLOADS).mkdirs();
 
 		// 다운로드 매니저에 요청 등록
@@ -321,5 +328,11 @@ public class MainActivity extends Activity implements DownloadListener {
 		SharedPreferences.Editor editor = sp.edit();
 		editor.putLong(MainActivity.LUAMING_UPDATE_ID, id);
 		editor.commit();
+	}
+
+	public void setProjectName(String projectName, String packageName) {
+		apkName = projectName + ".apk";
+		updateName = projectName + "_Update.apk";
+		this.packageName = packageName; 
 	}
 }

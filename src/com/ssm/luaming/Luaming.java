@@ -27,11 +27,11 @@ import org.cocos2dx.lib.Cocos2dxActivity;
 import org.cocos2dx.lib.Cocos2dxHelper;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.WindowManager;
 
 public class Luaming extends Cocos2dxActivity{
 
+	@Override
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -41,7 +41,6 @@ public class Luaming extends Cocos2dxActivity{
 			finish();
 		
 		Cocos2dxHelper.setApkPath(path);
-		Log.d("Luaming", path);
 	}
 	
     static {
