@@ -7,6 +7,7 @@ import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -29,13 +30,16 @@ public class LuamingWebViewClient extends WebViewClient {
 
 					SharedPreferences sp = activity.getSharedPreferences(MainActivity.LUAMING_PREF, Context.MODE_PRIVATE);
 					SharedPreferences.Editor editor = sp.edit();
-					editor.putInt(MainActivity.LUAMING_ACCOUNT_ID, Integer.parseInt(account.getString("account_id")));
+					editor.putInt(MainActivity.LUAMING_ACCOUNT_ID, account.getInt("account_id"));
 					editor.putString(MainActivity.LUAMING_ACCESS_TOKEN, account.getString("access_token"));
 					editor.commit();
 
 					File dir = new File(MainActivity.mainPath + "/" + account.getString("access_token"));
 					if (!dir.exists())
 						dir.mkdir();
+					
+					activity.accountId = account.getInt("account_id");
+					activity.accessToken = account.getString("access_token");
 				}
 				else if (url.contains("cangoback")) {
 					String[] temp = url.split("@");
@@ -57,7 +61,7 @@ public class LuamingWebViewClient extends WebViewClient {
 					String[] temp = url.split("@");
 					JSONObject projectInfo = new JSONObject(temp[temp.length-1]);
 					String packageName = projectInfo.getString("package_name");
-					String projectName = "Test";//projectInfo.getString("project_name");
+					String projectName = projectInfo.getString("project_name");
 					int gameId = projectInfo.getInt("game_id");
 					int latestVersion = projectInfo.getInt("latest_version_code");
 					
@@ -100,7 +104,7 @@ public class LuamingWebViewClient extends WebViewClient {
 						File dir = new File(MainActivity.mainPath + "/" + activity.accessToken + "/" + packageName);
 						if (!dir.exists())
 							dir.mkdir();
-						
+						Log.d("Luaming", "Download: " + MainActivity.mainPath);
 						editor.putInt(MainActivity.LUAMING_DOWNLOAD_FOR, MainActivity.DOWNLOAD_FOR_INSTALL);
 						editor.commit();
 						MainActivity.downloadFor = MainActivity.DOWNLOAD_FOR_INSTALL;

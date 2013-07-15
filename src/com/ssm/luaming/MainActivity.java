@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -113,6 +114,7 @@ public class MainActivity extends Activity implements DownloadListener {
 			if (!userDir.exists())
 				userDir.mkdir();
 		}
+		Log.d("Luaming", "onCreate: " + mainPath);
 
 		setContentView(R.layout.main_layout);
 
@@ -242,6 +244,7 @@ public class MainActivity extends Activity implements DownloadListener {
 					switch(downloadFor) {
 					case DOWNLOAD_FOR_INSTALL: 
 					case DOWNLOAD_FOR_REPLACE: {
+						Log.d("Luaming", "UpdatePackage: " + MainActivity.mainPath);
 						if (UpdateUtil.updateToReplace(MainActivity.mainPath + "/" + accessToken + "/" + packageName, MainActivity.this.apkName, MainActivity.this.updateName))
 							MainActivity.this.handler.sendEmptyMessage(UPDATE_COMPLETE);
 						else
