@@ -287,4 +287,13 @@ public class UpdateUtil {
 		
 		return orientation;
 	}
+	
+	public static long getFileSize(String dirPath, String updateName, boolean zeroToDelete) {
+		String updateZipPath = dirPath + "/" + updateName;
+		File updateFile = new File(updateZipPath);
+		long size = updateFile.length();
+		if (size == 0 && zeroToDelete)
+			updateFile.delete();
+		return size;
+	}
 }

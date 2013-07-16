@@ -1,13 +1,13 @@
 package com.ssm.luaming;
 
 import java.io.File;
+import java.io.FilenameFilter;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.util.Log;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -68,6 +68,7 @@ public class LuamingWebViewClient extends WebViewClient {
 					int currentVersion = UpdateUtil.checkVersion(MainActivity.mainPath + "/" + activity.accessToken + "/" + packageName, projectName + ".apk");
 
 					activity.setProjectName(projectName, packageName);
+					
 					SharedPreferences sp = activity.getSharedPreferences(MainActivity.LUAMING_PREF, Context.MODE_PRIVATE);
 					SharedPreferences.Editor editor = sp.edit();
 					// 이미 설치되어 있는 경우
@@ -78,6 +79,14 @@ public class LuamingWebViewClient extends WebViewClient {
 						}
 						// 현재 버전이 구버전인 경우
 						else {
+							// 이전에 다운받아놓은 업데이트 있는지 확인
+							File update = updateFile(MainActivity.mainPath + "/" + activity.accessToken + "/" + packageName, latestVersion);
+							if (update != null) {
+								activity.updateName = update.getName();
+								activity.handler.sendEmptyMessage(MainActivity.UPDATE_START);
+								return true;
+							}
+							
 							String latestVersionName = projectInfo.getString("latest_version_name");
 							String currentVersionName = UpdateUtil.checkVersionName(MainActivity.mainPath + "/" + activity.accessToken + "/" + packageName, projectName + ".apk");
 							// 메이저 버전이 같은 경우 => 업데이트
@@ -104,7 +113,6 @@ public class LuamingWebViewClient extends WebViewClient {
 						File dir = new File(MainActivity.mainPath + "/" + activity.accessToken + "/" + packageName);
 						if (!dir.exists())
 							dir.mkdir();
-						Log.d("Luaming", "Download: " + MainActivity.mainPath);
 						editor.putInt(MainActivity.LUAMING_DOWNLOAD_FOR, MainActivity.DOWNLOAD_FOR_INSTALL);
 						editor.commit();
 						MainActivity.downloadFor = MainActivity.DOWNLOAD_FOR_INSTALL;
@@ -139,12 +147,40 @@ public class LuamingWebViewClient extends WebViewClient {
 			else {
 				view.loadUrl("javascript: Luaming.initLocalStorage()");
 				view.loadUrl("javascript: Luaming.setAccountInfo(" + activity.accountId + ", \"" + activity.accessToken + "\")");
-				view.loadUrl("javascript: Luaming.redirectToMain()");
+				//view.loadUrl("javascript: Luaming.redirectToMain()");
 			}
 		}
 		else {
 			view.loadUrl("javascript: Luaming.setCanGoBack()");
 			view.loadUrl("javascript: Luaming.setLuamingBrowser()");
 		}
+	}
+	
+	public File updateFile(String dirPath, int latestVersion) {
+		File dir = new File(dirPath);
+		FilenameFilter filter = new FilenameFilter() {
+
+			@Override
+			public boolean accept(File dir, String name) {
+				// TODO Auto-generated method stub
+				if (name != null && name.contains("_Update") && name.endsWith("apk"))
+					return true;
+				return false;
+			}
+		};
+		
+		File[] updateFiles = dir.listFiles(filter);
+		File realUpdateFile = null;
+		if (updateFiles != null) {
+			int length = updateFiles.length;
+			for (int i = 0; i < length; i++) {
+				if (latestVersion == UpdateUtil.checkVersion(updateFiles[i].getParent(), updateFiles[i].getName()))
+					realUpdateFile = updateFiles[i];
+				else
+					updateFiles[i].delete();
+			}
+		}
+		
+		return realUpdateFile;
 	}
 }

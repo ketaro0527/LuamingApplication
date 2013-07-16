@@ -29,12 +29,14 @@
             android:name=".Luaming"
             android:configChanges="orientation"
             android:screenOrientation="landscape"
+            android:process="com.ssm.luaming.landscape"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
         </activity>
         <activity
             android:name=".LuamingPortrait"
             android:configChanges="orientation"
             android:screenOrientation="portrait"
+            android:process="com.ssm.luaming.portrait"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
         </activity>
     </application>

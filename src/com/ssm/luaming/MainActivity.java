@@ -21,7 +21,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -40,7 +39,7 @@ public class MainActivity extends Activity implements DownloadListener {
 	public static final String LUAMING_ACCOUNT_ID = "LUAMING_ACCOUNT_ID";
 	public static final String LUAMING_ACCESS_TOKEN = "LUAMING_ACCESS_TOKEN";
 	public static final String LUAMING_MOBILE_URL = "http://210.118.74.81/LuamingMobile/";
-	private static final int UPDATE_START = 0;
+	public static final int UPDATE_START = 0;
 	private static final int UPDATE_COMPLETE = 1;
 	private static final int UPDATE_FAILED = 2;
 	public static final int DOWNLOAD_FOR_INSTALL = 0;
@@ -50,10 +49,11 @@ public class MainActivity extends Activity implements DownloadListener {
 
 	public static final String mainPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Luaming";
 	private String apkName = "HelloLuaming.apk";
-	private String updateName = "HelloLuaming_Update.apk";
+	public String updateName = "HelloLuaming_Update.apk";
 	private LuamingWebView webview = null;
 	private ImageView splash = null;
 	private boolean isUpdating = false;
+	private long downloadId = -1;
 
 	public boolean isFirstTime = true;
 	public boolean hasAccountInfo = false;
@@ -69,12 +69,31 @@ public class MainActivity extends Activity implements DownloadListener {
 	private BroadcastReceiver completeReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			if (!isUpdating)				
-				MainActivity.this.handler.sendEmptyMessage(UPDATE_START);
+			if (!isUpdating && downloadId != -1) {
+				DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+				DownloadManager.Query query = new Query();
+				query.setFilterById(downloadId);
+				Cursor cursor = downloadManager.query(query);
+				if (cursor.moveToFirst()) {
+				    int status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
+				    if (status == DownloadManager.STATUS_SUCCESSFUL) {
+				        if (UpdateUtil.getFileSize(MainActivity.mainPath + "/" + accessToken + "/" + packageName, updateName, true) == 0) {
+				        	updateName = updateName.split("\\.")[0] + "-1.apk";
+				        	
+				        	if (UpdateUtil.getFileSize(MainActivity.mainPath + "/" + accessToken + "/" + packageName, updateName, false) != 0) {
+				        		MainActivity.this.handler.sendEmptyMessage(UPDATE_START);
+				        	}
+				        }
+				        	
+				        else
+				        	MainActivity.this.handler.sendEmptyMessage(UPDATE_START);
+				    }
+				}
+			}
 		}
 	};
 
-	private Handler handler = new Handler() {
+	public Handler handler = new Handler() {
 		@Override
 		public void handleMessage(Message m) {
 			if (pd != null) {
@@ -114,8 +133,7 @@ public class MainActivity extends Activity implements DownloadListener {
 			if (!userDir.exists())
 				userDir.mkdir();
 		}
-		Log.d("Luaming", "onCreate: " + mainPath);
-
+		
 		setContentView(R.layout.main_layout);
 
 		webview = (LuamingWebView) findViewById(R.id.main_webview);
@@ -166,6 +184,10 @@ public class MainActivity extends Activity implements DownloadListener {
 		downloadFor = sp.getInt(LUAMING_DOWNLOAD_FOR, DOWNLOAD_FOR_INSTALL);
 
 		if (id != -1) {
+			SharedPreferences.Editor editor = sp.edit();
+			editor.remove(LUAMING_UPDATE_ID);
+			editor.commit();
+			
 			DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 			DownloadManager.Query query = new Query();
 			query.setFilterById(id);
@@ -223,7 +245,8 @@ public class MainActivity extends Activity implements DownloadListener {
 				@Override
 				public void onCancel(DialogInterface dialog) {
 					// TODO Auto-generated method stub
-					MainActivity.this.finish();
+					//MainActivity.this.finish();
+					android.os.Process.killProcess(android.os.Process.myPid());
 				}
 			});
 			dialog.show("종료하시겠습니까?");
@@ -242,18 +265,17 @@ public class MainActivity extends Activity implements DownloadListener {
 			public void run() {
 				if (accessToken.length() > 0) {
 					switch(downloadFor) {
-					case DOWNLOAD_FOR_INSTALL: 
+					case DOWNLOAD_FOR_INSTALL:
 					case DOWNLOAD_FOR_REPLACE: {
-						Log.d("Luaming", "UpdatePackage: " + MainActivity.mainPath);
 						if (UpdateUtil.updateToReplace(MainActivity.mainPath + "/" + accessToken + "/" + packageName, MainActivity.this.apkName, MainActivity.this.updateName))
-							MainActivity.this.handler.sendEmptyMessage(UPDATE_COMPLETE);
+							MainActivity.this.handler.sendEmptyMessageDelayed(UPDATE_COMPLETE, 500);
 						else
 							MainActivity.this.handler.sendEmptyMessage(UPDATE_FAILED);
 					}
 					break;
 					case DOWNLOAD_FOR_UPDATE: {
 						if (UpdateUtil.update(MainActivity.mainPath + "/" + accessToken + "/" + packageName, MainActivity.this.apkName, MainActivity.this.updateName))
-							MainActivity.this.handler.sendEmptyMessage(UPDATE_COMPLETE);
+							MainActivity.this.handler.sendEmptyMessageDelayed(UPDATE_COMPLETE, 500);
 						else
 							MainActivity.this.handler.sendEmptyMessage(UPDATE_FAILED);
 					}
@@ -303,7 +325,7 @@ public class MainActivity extends Activity implements DownloadListener {
 
 		String fileName = downloadUri.getLastPathSegment();
 		int pos = 0;
-		if ((pos = contentDisposition.toLowerCase().lastIndexOf("filename=")) >= 0) {
+		if (contentDisposition != null && (pos = contentDisposition.toLowerCase().lastIndexOf("filename=")) >= 0) {
 			fileName = contentDisposition.substring(pos + 9);
 			pos = fileName.lastIndexOf(";");
 
@@ -325,11 +347,11 @@ public class MainActivity extends Activity implements DownloadListener {
 		//Environment.getExternalStoragePublicDirectory( Environment.DIRECTORY_DOWNLOADS).mkdirs();
 
 		// 다운로드 매니저에 요청 등록
-		long id = downloadManager.enqueue(request);
+		downloadId = downloadManager.enqueue(request);
 
 		SharedPreferences sp = getSharedPreferences(MainActivity.LUAMING_PREF, Context.MODE_PRIVATE);
 		SharedPreferences.Editor editor = sp.edit();
-		editor.putLong(MainActivity.LUAMING_UPDATE_ID, id);
+		editor.putLong(MainActivity.LUAMING_UPDATE_ID, downloadId);
 		editor.commit();
 	}
 

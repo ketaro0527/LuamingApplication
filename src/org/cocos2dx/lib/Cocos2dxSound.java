@@ -24,7 +24,6 @@ THE SOFTWARE.
 package org.cocos2dx.lib;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -283,7 +282,6 @@ public class Cocos2dxSound {
 		    
 		    InputStream in = zf.getInputStream(ze);
 	        File f = File.createTempFile("_SOUND_", extension);
-	        Log.d("Luaming", f.getAbsolutePath());
 	        FileOutputStream out = new FileOutputStream(f);
 	        
 	        byte[] buffer = new byte[1024];

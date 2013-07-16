@@ -100,7 +100,7 @@ public class Cocos2dxHelper {
 	{
 		return sApkPath;
 	}
-
+	
 	private static native void nativeSetApkPath(final String pApkPath);
 
 	private static native void nativeSetEditTextDialogResult(final byte[] pBytes);
