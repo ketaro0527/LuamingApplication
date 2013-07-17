@@ -8,7 +8,6 @@ import android.app.DownloadManager;
 import android.app.DownloadManager.Query;
 import android.app.DownloadManager.Request;
 import android.app.ProgressDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
@@ -16,11 +15,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -52,46 +55,24 @@ public class MainActivity extends Activity implements DownloadListener {
 	public String updateName = "HelloLuaming_Update.apk";
 	private LuamingWebView webview = null;
 	private ImageView splash = null;
-	private boolean isUpdating = false;
-	private long downloadId = -1;
+	public boolean isUpdating = false;
+	public long downloadId = -1;
 
 	public boolean isFirstTime = true;
 	public boolean hasAccountInfo = false;
 	public int accountId = -1;
+	public int gameId = 0;
 	public String accessToken = "";
 	public String packageName = "";
 	private String startURL = LUAMING_MOBILE_URL;
 
 	public boolean canGoBack = false;
 
+	public boolean initWithError = false;
+
 	private ProgressDialog pd;
 
-	private BroadcastReceiver completeReceiver = new BroadcastReceiver() {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			if (!isUpdating && downloadId != -1) {
-				DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-				DownloadManager.Query query = new Query();
-				query.setFilterById(downloadId);
-				Cursor cursor = downloadManager.query(query);
-				if (cursor.moveToFirst()) {
-				    int status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
-				    if (status == DownloadManager.STATUS_SUCCESSFUL) {
-				        if (UpdateUtil.getFileSize(MainActivity.mainPath + "/" + accessToken + "/" + packageName, updateName, true) == 0) {
-				        	updateName = updateName.split("\\.")[0] + "-1.apk";
-				        	
-				        	if (UpdateUtil.getFileSize(MainActivity.mainPath + "/" + accessToken + "/" + packageName, updateName, false) != 0) {
-				        		MainActivity.this.handler.sendEmptyMessage(UPDATE_START);
-				        	}
-				        }
-				        	
-				        else
-				        	MainActivity.this.handler.sendEmptyMessage(UPDATE_START);
-				    }
-				}
-			}
-		}
-	};
+	private LuamingBroadcastReceiver broadcastReceiver = new LuamingBroadcastReceiver(this);
 
 	public Handler handler = new Handler() {
 		@Override
@@ -119,7 +100,7 @@ public class MainActivity extends Activity implements DownloadListener {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);	
-		
+
 		File LuamingDir = new File(mainPath);
 		if (!LuamingDir.exists())
 			LuamingDir.mkdir();
@@ -133,7 +114,7 @@ public class MainActivity extends Activity implements DownloadListener {
 			if (!userDir.exists())
 				userDir.mkdir();
 		}
-		
+
 		setContentView(R.layout.main_layout);
 
 		webview = (LuamingWebView) findViewById(R.id.main_webview);
@@ -151,7 +132,8 @@ public class MainActivity extends Activity implements DownloadListener {
 					@Override
 					public void run() {
 						splash.setVisibility(View.GONE);
-						webview.setVisibility(View.VISIBLE);
+						if (initWithError == false)
+							webview.setVisibility(View.VISIBLE);
 					}
 				}, 500);
 			}
@@ -173,11 +155,29 @@ public class MainActivity extends Activity implements DownloadListener {
 	}
 
 	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// TODO Auto-generated method stub
+		menu.add("종료하기");
+		return super.onCreateOptionsMenu(menu);
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// TODO Auto-generated method stub
+		if (item.getTitle() == "종료하기")
+			android.os.Process.killProcess(android.os.Process.myPid());
+		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
 	public void onResume() {
 		super.onResume();
 		// 앱이 실행되면 리시버 등록
-		IntentFilter completeFilter = new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
-		registerReceiver(completeReceiver, completeFilter);
+		IntentFilter filter = new IntentFilter();
+		filter.addAction(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
+		filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+		filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
+		registerReceiver(broadcastReceiver, filter);
 
 		SharedPreferences sp = getSharedPreferences(LUAMING_PREF, MODE_PRIVATE);
 		long id = sp.getLong(LUAMING_UPDATE_ID, -1);
@@ -187,7 +187,7 @@ public class MainActivity extends Activity implements DownloadListener {
 			SharedPreferences.Editor editor = sp.edit();
 			editor.remove(LUAMING_UPDATE_ID);
 			editor.commit();
-			
+
 			DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 			DownloadManager.Query query = new Query();
 			query.setFilterById(id);
@@ -233,7 +233,7 @@ public class MainActivity extends Activity implements DownloadListener {
 		}
 
 		// 앱이 중단 되면 리시버 등록 해제
-		unregisterReceiver(completeReceiver);
+		unregisterReceiver(broadcastReceiver);
 	}
 
 	@Override
@@ -279,6 +279,7 @@ public class MainActivity extends Activity implements DownloadListener {
 						else
 							MainActivity.this.handler.sendEmptyMessage(UPDATE_FAILED);
 					}
+					break;
 					default:
 						break;
 					}
@@ -296,6 +297,8 @@ public class MainActivity extends Activity implements DownloadListener {
 	}
 
 	public void startGame() {
+		webview.loadUrl("javascript: Luaming.playGame(" + gameId + ")");
+
 		String orientation = UpdateUtil.checkOrientation(mainPath + "/" + accessToken + "/" + packageName, apkName);
 
 		// 이동

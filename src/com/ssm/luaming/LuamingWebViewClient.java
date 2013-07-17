@@ -6,13 +6,39 @@ import java.io.FilenameFilter;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnDismissListener;
 import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Message;
+import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+@SuppressLint("HandlerLeak")
 public class LuamingWebViewClient extends WebViewClient {
 	public MainActivity activity;
+	public WebView view;
+	public Handler handler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			switch(msg.what) {
+			case 0:
+				view.loadUrl("javascript: Luaming.initAndRedirectToHome()");
+				break;
+			case 1:
+				view.loadUrl("javascript: Luaming.initAndRedirectToMain(" + activity.accountId + ", \"" + activity.accessToken + "\")");
+				break;
+			case 2:
+				view.loadUrl("javascript: Luaming.setCanGoBackAndLuamingBrowser()");
+				break;
+			default:
+				break;
+			}
+		};
+	};
 
 	public LuamingWebViewClient(MainActivity act) {
 		activity = act;
@@ -63,6 +89,7 @@ public class LuamingWebViewClient extends WebViewClient {
 					String packageName = projectInfo.getString("package_name");
 					String projectName = projectInfo.getString("project_name");
 					int gameId = projectInfo.getInt("game_id");
+					activity.gameId = gameId;
 					int latestVersion = projectInfo.getInt("latest_version_code");
 					
 					int currentVersion = UpdateUtil.checkVersion(MainActivity.mainPath + "/" + activity.accessToken + "/" + packageName, projectName + ".apk");
@@ -138,22 +165,47 @@ public class LuamingWebViewClient extends WebViewClient {
 	public void onPageFinished(WebView view, String url) {
 		// TODO Auto-generated method stub
 		super.onPageFinished(view, url);
+		this.view = view;
 		if (activity.isFirstTime) {
 			activity.isFirstTime = false;
 			if (!activity.hasAccountInfo) {
-				view.loadUrl("javascript: Luaming.initLocalStorage()");
-				view.loadUrl("javascript: Luaming.redirectToHome()");
+				//view.loadUrl("javascript: Luaming.initLocalStorage()");
+				//view.loadUrl("javascript: Luaming.redirectToHome()");
+				//view.loadUrl("javascript: Luaming.initAndRedirectToHome()");
+				handler.sendEmptyMessageDelayed(0, 200);
 			}
 			else {
-				view.loadUrl("javascript: Luaming.initLocalStorage()");
-				view.loadUrl("javascript: Luaming.setAccountInfo(" + activity.accountId + ", \"" + activity.accessToken + "\")");
-				//view.loadUrl("javascript: Luaming.redirectToMain()");
+				//view.loadUrl("javascript: Luaming.initLocalStorage()");
+				//view.loadUrl("javascript: Luaming.setAccountInfo(" + activity.accountId + ", \"" + activity.accessToken + "\")");
+				//view.loadUrl("javascript: Luaming.initAndRedirectToMain(" + activity.accountId + ", \"" + activity.accessToken + "\")");
+				handler.sendEmptyMessageDelayed(1, 200);
 			}
 		}
 		else {
-			view.loadUrl("javascript: Luaming.setCanGoBack()");
-			view.loadUrl("javascript: Luaming.setLuamingBrowser()");
+			//view.loadUrl("javascript: Luaming.setCanGoBack()");
+			//view.loadUrl("javascript: Luaming.setLuamingBrowser()");
+			//view.loadUrl("javascript: Luaming.setCanGoBackAndLuamingBrowser()");
+			handler.sendEmptyMessageDelayed(2, 200);
 		}
+	}
+	
+	@Override
+	public void onReceivedError(WebView view, int errorCode,
+			String description, String failingUrl) {
+		// TODO Auto-generated method stub
+		super.onReceivedError(view, errorCode, description, failingUrl);
+		activity.initWithError = true;
+		view.setVisibility(View.GONE);
+		LuamingDialog dialog = new LuamingDialog(activity, LuamingDialog.LUAMING_DIALOG_STYLE_SINGLE);
+		dialog.setOnDismissListener(new OnDismissListener() {
+			
+			@Override
+			public void onDismiss(DialogInterface dialog) {
+				// TODO Auto-generated method stub
+				android.os.Process.killProcess(android.os.Process.myPid());
+			}
+		});
+		dialog.show("인터넷 연결을 확인하세요.\nLuaming을 종료합니다.");
 	}
 	
 	public File updateFile(String dirPath, int latestVersion) {
@@ -174,7 +226,7 @@ public class LuamingWebViewClient extends WebViewClient {
 		if (updateFiles != null) {
 			int length = updateFiles.length;
 			for (int i = 0; i < length; i++) {
-				if (latestVersion == UpdateUtil.checkVersion(updateFiles[i].getParent(), updateFiles[i].getName()))
+				if (updateFiles[i].length() > 0 && latestVersion == UpdateUtil.checkVersion(updateFiles[i].getParent(), updateFiles[i].getName()))
 					realUpdateFile = updateFiles[i];
 				else
 					updateFiles[i].delete();

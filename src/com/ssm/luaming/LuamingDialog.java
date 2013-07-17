@@ -13,6 +13,7 @@ public class LuamingDialog extends Dialog implements android.view.View.OnClickLi
 	private ImageButton btnOK;
 	private ImageButton btnCancel;
 	private TextView dialogText;
+	private boolean isCancelable = true;
 
 	private int dialogType;
 
@@ -49,7 +50,8 @@ public class LuamingDialog extends Dialog implements android.view.View.OnClickLi
 	
 	@Override
 	public void onBackPressed() {
-		dismiss();
+		if (isCancelable)
+			dismiss();
 	}
 	
 	public void show(String msg) {
@@ -79,5 +81,12 @@ public class LuamingDialog extends Dialog implements android.view.View.OnClickLi
 		btnCancel = (ImageButton) findViewById(R.id.oc_dialog_cancel);
 		btnCancel.setImageResource(R.drawable.no);
 		btnCancel.setOnClickListener(this);
+	}
+	
+	@Override
+	public void setCancelable(boolean flag) {
+		// TODO Auto-generated method stub
+		super.setCancelable(flag);
+		isCancelable = flag;
 	}
 }

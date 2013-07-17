@@ -23,9 +23,9 @@ public class LuamingWebView extends WebView {
 	public void init(MainActivity act) {
 		activity = act;
 		
-		setVerticalScrollBarEnabled(false);
 		setScrollBarStyle(WebView.SCROLLBARS_INSIDE_OVERLAY);
 		setScrollbarFadingEnabled(true);
+		setScrollContainer(true);
 		getSettings().setJavaScriptEnabled(true);
 		getSettings().setSupportZoom(false);
 		getSettings().setDomStorageEnabled(true);
