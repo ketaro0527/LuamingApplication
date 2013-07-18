@@ -29,12 +29,12 @@
         android:gravity="center"
         android:paddingBottom="10dp">
         
-        <com.ssm.luaming.ImageButton
+        <com.ssm.luaming.util.LuamingImageButton
             android:id="@+id/oc_dialog_ok"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         
-        <com.ssm.luaming.ImageButton
+        <com.ssm.luaming.util.LuamingImageButton
             android:id="@+id/oc_dialog_cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>

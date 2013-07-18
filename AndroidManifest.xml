@@ -16,7 +16,7 @@
         android:icon="@drawable/icon"
         android:label="@string/app_name">
         <activity
-            android:name=".MainActivity"
+            android:name=".LuamingActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait"
             android:theme="@android:style/Theme.Black.NoTitleBar"
@@ -28,14 +28,14 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Luaming"
+            android:name=".game.Luaming"
             android:configChanges="orientation"
             android:screenOrientation="landscape"
             android:process="com.ssm.luaming.landscape"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
         </activity>
         <activity
-            android:name=".LuamingPortrait"
+            android:name=".game.LuamingPortrait"
             android:configChanges="orientation"
             android:screenOrientation="portrait"
             android:process="com.ssm.luaming.portrait"

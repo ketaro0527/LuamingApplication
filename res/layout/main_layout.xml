@@ -4,7 +4,7 @@
     android:layout_height="fill_parent"
     android:background="#32394b">
     
-    <com.ssm.luaming.LuamingWebView
+    <com.ssm.luaming.web.LuamingWebView
         android:id="@+id/main_webview"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"/>
