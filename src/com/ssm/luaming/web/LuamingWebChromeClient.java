@@ -22,7 +22,7 @@ public class LuamingWebChromeClient extends WebChromeClient {
 	public void onReceivedTitle(WebView view, String title) {
 		// TODO Auto-generated method stub
 		super.onReceivedTitle(view, title);
-		if (title.toLowerCase().contains("found")) {
+		if (title.toLowerCase().contains("found") || title.toLowerCase().contains("forbidden")) {
 			view.setVisibility(View.GONE);
 			LuamingDialog dialog = new LuamingDialog(activity, LuamingDialog.LUAMING_DIALOG_STYLE_SINGLE);
 			dialog.setBackCancelable(false);

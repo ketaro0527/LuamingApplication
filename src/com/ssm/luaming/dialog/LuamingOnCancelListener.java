@@ -2,10 +2,9 @@ package com.ssm.luaming.dialog;
 
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
-import android.util.Log;
 
-import com.ssm.luaming.LuamingConstant;
 import com.ssm.luaming.LuamingActivity;
+import com.ssm.luaming.LuamingConstant;
 
 public class LuamingOnCancelListener implements OnCancelListener{
 	
@@ -26,7 +25,6 @@ public class LuamingOnCancelListener implements OnCancelListener{
 	
 	@Override
 	public void onCancel(DialogInterface dialog) {
-		Log.d("Luaming", "OnCancel");
 		// TODO Auto-generated method stub
 		LuamingDialog luamingDialog = (LuamingDialog)dialog;
 		switch(type) {

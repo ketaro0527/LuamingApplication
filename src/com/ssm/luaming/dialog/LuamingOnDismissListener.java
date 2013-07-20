@@ -2,7 +2,6 @@ package com.ssm.luaming.dialog;
 
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
-import android.util.Log;
 import android.webkit.JsResult;
 
 public class LuamingOnDismissListener implements OnDismissListener{
@@ -24,7 +23,6 @@ public class LuamingOnDismissListener implements OnDismissListener{
 
 	@Override
 	public void onDismiss(DialogInterface dialog) {
-		Log.d("Luaming", "OnDismiss");
 		// TODO Auto-generated method stub
 		LuamingDialog luamingDialog = (LuamingDialog)dialog;
 		switch(type) {

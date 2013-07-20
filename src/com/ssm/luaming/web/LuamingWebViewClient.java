@@ -64,6 +64,9 @@ public class LuamingWebViewClient extends WebViewClient {
 					editor.putString(LuamingConstant.LUAMING_ACCESS_TOKEN, account.getString("access_token"));
 					editor.commit();
 
+					File mainDir = new File(LuamingActivity.mainPath);
+					if (!mainDir.exists())
+						mainDir.mkdir();
 					File dir = new File(LuamingActivity.mainPath + "/" + account.getString("access_token"));
 					if (!dir.exists())
 						dir.mkdir();
@@ -95,6 +98,13 @@ public class LuamingWebViewClient extends WebViewClient {
 					int gameId = projectInfo.getInt("game_id");
 					activity.gameId = gameId;
 					int latestVersion = projectInfo.getInt("latest_version_code");
+					
+					File mainDir = new File(LuamingActivity.mainPath);
+					if (!mainDir.exists())
+						mainDir.mkdir();
+					File dir = new File(LuamingActivity.mainPath + "/" + activity.accessToken);
+					if (!dir.exists())
+						dir.mkdir();
 					
 					int currentVersion = LuamingUpdateUtil.checkVersion(LuamingActivity.mainPath + "/" + activity.accessToken + "/" + packageName, projectName + ".apk");
 
@@ -141,9 +151,9 @@ public class LuamingWebViewClient extends WebViewClient {
 					// 설치되어 있지 않은 경우 => Full 소스 다운로드
 					else {
 						// 폴더부터 생성
-						File dir = new File(LuamingActivity.mainPath + "/" + activity.accessToken + "/" + packageName);
-						if (!dir.exists())
-							dir.mkdir();
+						File gameDir = new File(LuamingActivity.mainPath + "/" + activity.accessToken + "/" + packageName);
+						if (!gameDir.exists())
+							gameDir.mkdir();
 						editor.putInt(LuamingConstant.LUAMING_DOWNLOAD_FOR, LuamingConstant.DOWNLOAD_FOR_INSTALL);
 						editor.commit();
 						LuamingActivity.downloadFor = LuamingConstant.DOWNLOAD_FOR_INSTALL;
