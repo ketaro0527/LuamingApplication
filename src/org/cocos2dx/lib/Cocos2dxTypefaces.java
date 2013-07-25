@@ -23,10 +23,16 @@ THE SOFTWARE.
  ****************************************************************************/
 package org.cocos2dx.lib;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.HashMap;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import android.content.Context;
 import android.graphics.Typeface;
+import android.util.Log;
 
 public class Cocos2dxTypefaces {
 	// ===========================================================
@@ -57,8 +63,34 @@ public class Cocos2dxTypefaces {
 
 	public static synchronized Typeface get(final Context pContext, final String pAssetName) {
 		if (!Cocos2dxTypefaces.sTypefaceCache.containsKey(pAssetName)) {
-			final Typeface typeface = Typeface.createFromAsset(pContext.getAssets(), pAssetName);
-			Cocos2dxTypefaces.sTypefaceCache.put(pAssetName, typeface);
+			//final Typeface typeface = Typeface.createFromAsset(pContext.getAssets(), pAssetName);
+			String pPath = pAssetName;
+			try {
+				ZipFile zf= new ZipFile(Cocos2dxHelper.getApkPath());
+			    ZipEntry ze = zf.getEntry("assets/" + pPath);
+			    if (ze == null) {
+			        return null;
+			    }
+				
+			    String extension = pPath.substring(pPath.indexOf("."));
+			    
+			    InputStream in = zf.getInputStream(ze);
+		        File f = File.createTempFile("_FONT_", extension);
+		        FileOutputStream out = new FileOutputStream(f);
+		        
+		        byte[] buffer = new byte[1024];
+	            while(in.read(buffer) > -1) {
+	                out.write(buffer);   
+	            }
+	            in.close();
+	            out.close();
+				
+	            final Typeface typeface = Typeface.createFromFile(f);
+	            Cocos2dxTypefaces.sTypefaceCache.put(pAssetName, typeface);
+			} catch (final Exception e) {
+				
+				Log.e("Cocos2dxTypefaces", "error: " + e.getMessage(), e);
+			}
 		}
 
 		return Cocos2dxTypefaces.sTypefaceCache.get(pAssetName);

@@ -34,6 +34,11 @@ public class LuamingUpdateUtil {
 		if (!updateFile.exists())
 			return false;
 		
+		File tempFile = new File(tempZipPath);
+		if (tempFile.exists())
+			tempFile.delete();
+		tempFile = null;
+		
 		try {
 			ZipFile oldZip = new ZipFile(oldZipPath);
 			ZipFile updateZip = new ZipFile(updateZipPath);
@@ -93,7 +98,7 @@ public class LuamingUpdateUtil {
 			zo.close();
 
 			// Remove old zip file and rename temp zip file
-			File tempFile = new File(tempZipPath);
+			tempFile = new File(tempZipPath);
 			tempFile.renameTo(oldFile);
 			updateFile.delete();
 		} catch (Exception e) {
