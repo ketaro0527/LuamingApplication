@@ -41,7 +41,7 @@ import com.ssm.luaming.web.LuamingWebView;
 public class LuamingActivity extends Activity {
 	public static int downloadFor = LuamingConstant.DOWNLOAD_FOR_INSTALL;
 
-	public static String mainPath = "";
+	public static String mainPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/.Luaming";
 	public String apkName = "";
 	public String updateName = "";
 	
@@ -55,6 +55,7 @@ public class LuamingActivity extends Activity {
 	public boolean hasAccountInfo = false;
 	public int accountId = -1;
 	public int gameId = 0;
+	public int latestVersion = 0;
 	public String accessToken = "";
 	public String packageName = "";
 	private String startURL = LuamingConstant.LUAMING_MOBILE_URL;
@@ -65,7 +66,7 @@ public class LuamingActivity extends Activity {
 
 	public ProgressDialog pd;
 
-	private LuamingBroadcastReceiver broadcastReceiver = new LuamingBroadcastReceiver(this);
+	private LuamingBroadcastReceiver broadcastReceiver = null;
 
 	public Handler handler = new Handler() {
 		@Override
@@ -76,7 +77,6 @@ public class LuamingActivity extends Activity {
 			}
 
 			if (m.what == LuamingConstant.UPDATE_START) {
-				isUpdating = true;
 				LuamingActivity.this.updatePackage();
 			}
 			else if (m.what == LuamingConstant.UPDATE_COMPLETE) {
@@ -102,7 +102,7 @@ public class LuamingActivity extends Activity {
 			dialog.show("SD카드가 없습니다.\nLuaming을 종료합니다.");
 		}
 		
-		mainPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Luaming";
+		mainPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/.Luaming";
 
 		File LuamingDir = new File(mainPath);
 		if (!LuamingDir.exists())
@@ -159,15 +159,28 @@ public class LuamingActivity extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// TODO Auto-generated method stub
-		menu.add("종료하기");
+		menu.add(0, 0, 0, "오프라인 모드");
+		menu.add(0, 1, 0, "종료하기");
 		return super.onCreateOptionsMenu(menu);
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// TODO Auto-generated method stub
-		if (item.getTitle() == "종료하기")
+		switch(item.getItemId()) {
+		case 0: {
+			Intent intent = new Intent(this, LuamingOfflineActivity.class);
+			startActivity(intent);
+			finish();
+		}
+			break;
+		case 1: {
 			android.os.Process.killProcess(android.os.Process.myPid());
+		}
+			break;
+		default:
+			break;
+		}
 		return super.onOptionsItemSelected(item);
 	}
 
@@ -175,24 +188,19 @@ public class LuamingActivity extends Activity {
 	public void onResume() {
 		super.onResume();
 		// 앱이 실행되면 리시버 등록
+		if (broadcastReceiver == null)
+			broadcastReceiver = new LuamingBroadcastReceiver(this);
+		
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(DownloadManager.ACTION_DOWNLOAD_COMPLETE);
 		filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
 		filter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
 		registerReceiver(broadcastReceiver, filter);
 
-		SharedPreferences sp = getSharedPreferences(LuamingConstant.LUAMING_PREF, MODE_PRIVATE);
-		long id = sp.getLong(LuamingConstant.LUAMING_UPDATE_ID, -1);
-		downloadFor = sp.getInt(LuamingConstant.LUAMING_DOWNLOAD_FOR, LuamingConstant.DOWNLOAD_FOR_INSTALL);
-
-		if (id != -1) {
-			SharedPreferences.Editor editor = sp.edit();
-			editor.remove(LuamingConstant.LUAMING_UPDATE_ID);
-			editor.commit();
-
+		if (downloadId != -1) {
 			DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 			DownloadManager.Query query = new Query();
-			query.setFilterById(id);
+			query.setFilterById(downloadId);
 			query.setFilterByStatus(DownloadManager.STATUS_SUCCESSFUL);
 			Cursor cursor = downloadManager.query(query);
 
@@ -207,10 +215,12 @@ public class LuamingActivity extends Activity {
 				dialog.setBackCancelable(false);
 				dialog.setOnCancelListener(new LuamingOnCancelListener(LuamingOnCancelListener.LUAMING_CANCEL_TYPE_UPDATE_START, this));
 				dialog.show(msg);
+				downloadId = -1;
+				return;
 			}
 
 			query = new Query();
-			query.setFilterById(id);
+			query.setFilterById(downloadId);
 			query.setFilterByStatus(DownloadManager.STATUS_RUNNING);
 			cursor = downloadManager.query(query);
 			if (cursor.getCount() > 0) {
@@ -269,6 +279,7 @@ public class LuamingActivity extends Activity {
 		Intent intent = new Intent(this, cls);
 		intent.putExtra(LuamingConstant.LUAMING_GAME_PATH, mainPath + "/" + accessToken + "/" + packageName + "/" + apkName);
 		startActivity(intent);
+		downloadId = -1;
 	}
 
 	public void setProjectName(String projectName, String packageName) {

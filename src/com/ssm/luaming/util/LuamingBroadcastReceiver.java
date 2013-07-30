@@ -1,5 +1,7 @@
 package com.ssm.luaming.util;
 
+import java.io.File;
+
 import android.app.DownloadManager;
 import android.app.DownloadManager.Query;
 import android.content.BroadcastReceiver;
@@ -9,9 +11,10 @@ import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
-import com.ssm.luaming.LuamingConstant;
 import com.ssm.luaming.LuamingActivity;
+import com.ssm.luaming.LuamingConstant;
 import com.ssm.luaming.dialog.LuamingDialog;
+import com.ssm.luaming.dialog.LuamingOnCancelListener;
 import com.ssm.luaming.dialog.LuamingOnDismissListener;
 
 public class LuamingBroadcastReceiver extends BroadcastReceiver {
@@ -34,6 +37,15 @@ public class LuamingBroadcastReceiver extends BroadcastReceiver {
 				if (cursor.moveToFirst()) {
 					int status = cursor.getInt(cursor.getColumnIndex(DownloadManager.COLUMN_STATUS));
 					if (status == DownloadManager.STATUS_SUCCESSFUL) {
+						
+						File update = LuamingUpdateUtil.getUpdateFile(LuamingActivity.mainPath + "/" + activity.accessToken + "/" + activity.packageName, activity.latestVersion);
+						if (update != null) {
+							activity.updateName = update.getName();
+							activity.isUpdating = true;
+							activity.handler.sendEmptyMessage(LuamingConstant.UPDATE_START);
+							return;
+						}
+/*						
 						if (LuamingUpdateUtil.getFileSize(LuamingActivity.mainPath + "/" + activity.accessToken + "/" + activity.packageName, activity.updateName, true) == 0) {
 							activity.updateName = activity.updateName.split("\\.")[0] + "-1.apk";
 
@@ -44,6 +56,7 @@ public class LuamingBroadcastReceiver extends BroadcastReceiver {
 
 						else
 							activity.handler.sendEmptyMessage(LuamingConstant.UPDATE_START);
+*/
 					}
 				}
 			}
@@ -83,10 +96,11 @@ public class LuamingBroadcastReceiver extends BroadcastReceiver {
 	
 	private LuamingDialog showError(Context context) {
 		activity.initWithError = true;
-		LuamingDialog dialog = new LuamingDialog(context, LuamingDialog.LUAMING_DIALOG_STYLE_SINGLE);
+		LuamingDialog dialog = new LuamingDialog(context, LuamingDialog.LUAMING_DIALOG_STYLE_OK_CANCEL);
 		dialog.setBackCancelable(false);
+		dialog.setOnCancelListener(new LuamingOnCancelListener(LuamingOnCancelListener.LUAMING_CANCEL_TYPE_OFFLINE_MODE, activity));
 		dialog.setOnDismissListener(new LuamingOnDismissListener(LuamingOnDismissListener.LUAMING_DISMISS_TYPE_FINISH));
-		dialog.show("인터넷 연결을 확인하세요.\nLuaming을 종료합니다.");
+		dialog.show("인터넷에 연결되어 있지 않습니다.\n오프라인 모드로 전환할까요?");
 		
 		return dialog;
 	}

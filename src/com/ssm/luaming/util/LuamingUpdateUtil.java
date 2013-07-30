@@ -3,6 +3,7 @@ package com.ssm.luaming.util;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -300,5 +301,33 @@ public class LuamingUpdateUtil {
 		if (size == 0 && zeroToDelete)
 			updateFile.delete();
 		return size;
+	}
+	
+	public static File getUpdateFile(String dirPath, int latestVersion) {
+		File dir = new File(dirPath);
+		FilenameFilter filter = new FilenameFilter() {
+
+			@Override
+			public boolean accept(File dir, String name) {
+				// TODO Auto-generated method stub
+				if (name != null && name.contains("_Update") && name.endsWith("apk"))
+					return true;
+				return false;
+			}
+		};
+		
+		File[] updateFiles = dir.listFiles(filter);
+		File realUpdateFile = null;
+		if (updateFiles != null) {
+			int length = updateFiles.length;
+			for (int i = 0; i < length; i++) {
+				if (updateFiles[i].length() > 0 && latestVersion == LuamingUpdateUtil.checkVersion(updateFiles[i].getParent(), updateFiles[i].getName()))
+					realUpdateFile = updateFiles[i];
+				else
+					updateFiles[i].delete();
+			}
+		}
+		
+		return realUpdateFile;
 	}
 }

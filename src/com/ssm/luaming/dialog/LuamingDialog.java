@@ -19,6 +19,7 @@ public class LuamingDialog extends Dialog implements android.view.View.OnClickLi
 	private TextView dialogText;
 	private boolean isCancelable = true;
 	private boolean isClicked = false;
+	private static boolean isShowing = false;
 
 	private int dialogType;
 
@@ -40,6 +41,7 @@ public class LuamingDialog extends Dialog implements android.view.View.OnClickLi
 	@Override
 	public void onClick(View v) {
 		// TODO Auto-generated method stub
+		isShowing = false;
 		if (dialogType == LUAMING_DIALOG_STYLE_SINGLE) {
 			if (v == btnOK) {
 				isClicked = true;
@@ -65,8 +67,11 @@ public class LuamingDialog extends Dialog implements android.view.View.OnClickLi
 	}
 	
 	public void show(String msg) {
-		dialogText.setText(msg);
-		show();
+		if (!isShowing) {
+			isShowing = true;
+			dialogText.setText(msg);
+			show();
+		}
 	}
 
 	private void setSingleDialog() {

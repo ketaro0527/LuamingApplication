@@ -1,7 +1,6 @@
 package com.ssm.luaming.web;
 
 import java.io.File;
-import java.io.FilenameFilter;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,8 +14,8 @@ import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.ssm.luaming.LuamingConstant;
 import com.ssm.luaming.LuamingActivity;
+import com.ssm.luaming.LuamingConstant;
 import com.ssm.luaming.dialog.LuamingDialog;
 import com.ssm.luaming.dialog.LuamingOnDismissListener;
 import com.ssm.luaming.util.LuamingUpdateUtil;
@@ -97,7 +96,7 @@ public class LuamingWebViewClient extends WebViewClient {
 					String projectName = projectInfo.getString("project_name");
 					int gameId = projectInfo.getInt("game_id");
 					activity.gameId = gameId;
-					int latestVersion = projectInfo.getInt("latest_version_code");
+					activity.latestVersion = projectInfo.getInt("latest_version_code");
 					
 					File mainDir = new File(LuamingActivity.mainPath);
 					if (!mainDir.exists())
@@ -110,20 +109,19 @@ public class LuamingWebViewClient extends WebViewClient {
 
 					activity.setProjectName(projectName, packageName);
 					
-					SharedPreferences sp = activity.getSharedPreferences(LuamingConstant.LUAMING_PREF, Context.MODE_PRIVATE);
-					SharedPreferences.Editor editor = sp.edit();
 					// 이미 설치되어 있는 경우
 					if (currentVersion > 0) {
 						// 현재 버전이 최신버전과 동일한 경우
-						if (latestVersion == currentVersion) {
+						if (activity.latestVersion == currentVersion) {
 							activity.startGame();
 						}
 						// 현재 버전이 구버전인 경우
 						else {
 							// 이전에 다운받아놓은 업데이트 있는지 확인
-							File update = updateFile(LuamingActivity.mainPath + "/" + activity.accessToken + "/" + packageName, latestVersion);
+							File update = LuamingUpdateUtil.getUpdateFile(LuamingActivity.mainPath + "/" + activity.accessToken + "/" + packageName, activity.latestVersion);
 							if (update != null) {
 								activity.updateName = update.getName();
+								activity.isUpdating = true;
 								activity.handler.sendEmptyMessage(LuamingConstant.UPDATE_START);
 								return true;
 							}
@@ -132,16 +130,12 @@ public class LuamingWebViewClient extends WebViewClient {
 							String currentVersionName = LuamingUpdateUtil.checkVersionName(LuamingActivity.mainPath + "/" + activity.accessToken + "/" + packageName, projectName + ".apk");
 							// 메이저 버전이 같은 경우 => 업데이트
 							if (currentVersionName.startsWith(latestVersionName.substring(0, 1))) {
-								editor.putInt(LuamingConstant.LUAMING_DOWNLOAD_FOR, LuamingConstant.DOWNLOAD_FOR_UPDATE);
-								editor.commit();
 								LuamingActivity.downloadFor = LuamingConstant.DOWNLOAD_FOR_UPDATE;
 								// 다운로드 시작
 								view.loadUrl("javascript: Luaming.updateDownload(" + gameId + ", " + currentVersion + ")");
 							}
 							// 메이저 버전이 다른 경우 => 새로운 Full 소스 다운로드
 							else {
-								editor.putInt(LuamingConstant.LUAMING_DOWNLOAD_FOR, LuamingConstant.DOWNLOAD_FOR_REPLACE);
-								editor.commit();
 								LuamingActivity.downloadFor = LuamingConstant.DOWNLOAD_FOR_REPLACE;
 								// 다운로드 시작
 								view.loadUrl("javascript: Luaming.fullDownload(" + gameId + ")");
@@ -150,12 +144,20 @@ public class LuamingWebViewClient extends WebViewClient {
 					}
 					// 설치되어 있지 않은 경우 => Full 소스 다운로드
 					else {
+						// 이전에 받은 Full 소스 있는지 먼저 확인
+						File update = LuamingUpdateUtil.getUpdateFile(LuamingActivity.mainPath + "/" + activity.accessToken + "/" + packageName, activity.latestVersion);
+						if (update != null) {
+							activity.updateName = update.getName();
+							activity.isUpdating = true;
+							LuamingActivity.downloadFor = LuamingConstant.DOWNLOAD_FOR_REPLACE;
+							activity.handler.sendEmptyMessage(LuamingConstant.UPDATE_START);
+							return true;
+						}
+						
 						// 폴더부터 생성
 						File gameDir = new File(LuamingActivity.mainPath + "/" + activity.accessToken + "/" + packageName);
 						if (!gameDir.exists())
 							gameDir.mkdir();
-						editor.putInt(LuamingConstant.LUAMING_DOWNLOAD_FOR, LuamingConstant.DOWNLOAD_FOR_INSTALL);
-						editor.commit();
 						LuamingActivity.downloadFor = LuamingConstant.DOWNLOAD_FOR_INSTALL;
 						
 						// 다운로드 시작
@@ -205,33 +207,5 @@ public class LuamingWebViewClient extends WebViewClient {
 		dialog.setBackCancelable(false);
 		dialog.setOnDismissListener(new LuamingOnDismissListener(LuamingOnDismissListener.LUAMING_DISMISS_TYPE_FINISH));
 		dialog.show("인터넷 연결을 확인하세요.\nLuaming을 종료합니다.");
-	}
-	
-	public File updateFile(String dirPath, int latestVersion) {
-		File dir = new File(dirPath);
-		FilenameFilter filter = new FilenameFilter() {
-
-			@Override
-			public boolean accept(File dir, String name) {
-				// TODO Auto-generated method stub
-				if (name != null && name.contains("_Update") && name.endsWith("apk"))
-					return true;
-				return false;
-			}
-		};
-		
-		File[] updateFiles = dir.listFiles(filter);
-		File realUpdateFile = null;
-		if (updateFiles != null) {
-			int length = updateFiles.length;
-			for (int i = 0; i < length; i++) {
-				if (updateFiles[i].length() > 0 && latestVersion == LuamingUpdateUtil.checkVersion(updateFiles[i].getParent(), updateFiles[i].getName()))
-					realUpdateFile = updateFiles[i];
-				else
-					updateFiles[i].delete();
-			}
-		}
-		
-		return realUpdateFile;
 	}
 }

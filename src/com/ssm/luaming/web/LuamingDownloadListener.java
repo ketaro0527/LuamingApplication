@@ -1,17 +1,17 @@
 package com.ssm.luaming.web;
 
-import com.ssm.luaming.LuamingActivity;
-import com.ssm.luaming.LuamingConstant;
-
+import android.annotation.SuppressLint;
 import android.app.DownloadManager;
-import android.app.ProgressDialog;
 import android.app.DownloadManager.Request;
+import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.webkit.DownloadListener;
 import android.webkit.MimeTypeMap;
 
+import com.ssm.luaming.LuamingActivity;
+
+@SuppressLint("DefaultLocale")
 public class LuamingDownloadListener implements DownloadListener{
 	
 	private LuamingActivity activity;
@@ -53,15 +53,10 @@ public class LuamingDownloadListener implements DownloadListener{
 		request.setTitle(fileName);
 		request.setDescription(url);
 		request.setMimeType(mimeType);
-		request.setDestinationInExternalPublicDir( "/Luaming/" + activity.accessToken + "/" + activity.packageName, activity.updateName);
+		request.setDestinationInExternalPublicDir( "/.Luaming/" + activity.accessToken + "/" + activity.packageName, activity.updateName);
 
 		// 다운로드 매니저에 요청 등록
 		activity.downloadId = downloadManager.enqueue(request);
-
-		SharedPreferences sp = activity.getSharedPreferences(LuamingConstant.LUAMING_PREF, Context.MODE_PRIVATE);
-		SharedPreferences.Editor editor = sp.edit();
-		editor.putLong(LuamingConstant.LUAMING_UPDATE_ID, activity.downloadId);
-		editor.commit();
 	}
 
 }

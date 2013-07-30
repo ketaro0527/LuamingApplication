@@ -41,6 +41,7 @@
             android:process="com.ssm.luaming.portrait"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
         </activity>
+        <activity android:name=".LuamingOfflineActivity" android:screenOrientation="portrait" android:theme="@android:style/Theme.Black.NoTitleBar"></activity>
     </application>
 
     <supports-screens
