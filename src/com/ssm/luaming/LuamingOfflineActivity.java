@@ -9,6 +9,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.view.Menu;
@@ -21,28 +22,29 @@ import android.widget.ListView;
 
 import com.ssm.luaming.dialog.LuamingDialog;
 import com.ssm.luaming.dialog.LuamingOnCancelListener;
+import com.ssm.luaming.dialog.LuamingOnDismissListener;
 import com.ssm.luaming.game.Luaming;
 import com.ssm.luaming.game.LuamingPortrait;
 import com.ssm.luaming.util.LuamingUpdateUtil;
 
 @SuppressLint({ "HandlerLeak", "DefaultLocale" })
 public class LuamingOfflineActivity extends Activity implements OnItemClickListener {
-	
+
 	private static final int FIND_GAME_LIST = 0;
 	private static final int SHOW_GAME_LIST = 1;
-	
+
 	private ProgressDialog pd = null;
 	private ArrayList<File> gameAPKs;
 	private ListView gameListView;
 	private Handler handler = new Handler() {
-		
+
 		@Override
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 			case FIND_GAME_LIST: {
 				pd = ProgressDialog.show(LuamingOfflineActivity.this, "Searching", "Please wait...", true);
 				thread = new Thread() {
-					
+
 					@Override
 					public void run() {
 						gameAPKs = getGameList();
@@ -51,7 +53,7 @@ public class LuamingOfflineActivity extends Activity implements OnItemClickListe
 				};
 				thread.start();
 			}
-				break;
+			break;
 			case SHOW_GAME_LIST: {
 				if (pd != null) {
 					pd.dismiss();
@@ -66,31 +68,48 @@ public class LuamingOfflineActivity extends Activity implements OnItemClickListe
 					gameListView.setAdapter(adapter);
 					gameListView.setOnItemClickListener(LuamingOfflineActivity.this);
 				}
+				else {
+					ArrayList<String> list = new ArrayList<String>();
+					list.add("다운 받은 게임이 없습니다");
+					ArrayAdapter<String> adapter = new ArrayAdapter<String>(LuamingOfflineActivity.this, android.R.layout.simple_list_item_1, list);
+					gameListView.setAdapter(adapter);
+				}
 			}
-				break;
+			break;
 			default:
 				break;
 			}
 		}
 	};
-	
+
 	private Thread thread;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
+
+		// 외장 메모리 확인
+		if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
+			LuamingDialog dialog = new LuamingDialog(this, LuamingDialog.LUAMING_DIALOG_STYLE_SINGLE);
+			dialog.setBackCancelable(false);
+			dialog.setOnDismissListener(new LuamingOnDismissListener(LuamingOnDismissListener.LUAMING_DISMISS_TYPE_FINISH));
+			dialog.show("SD카드가 없습니다.\nLuaming을 종료합니다.");
+		}
+
+		LuamingActivity.mainPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/.Luaming";
+
 		setContentView(R.layout.offline_layout);
 		gameListView = (ListView)findViewById(R.id.offline_game_list);
 	}
-	
+
 	@Override
 	protected void onResume() {
 		// TODO Auto-generated method stub
 		super.onResume();
 		handler.sendEmptyMessage(FIND_GAME_LIST);
 	}
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// TODO Auto-generated method stub
@@ -108,17 +127,17 @@ public class LuamingOfflineActivity extends Activity implements OnItemClickListe
 			startActivity(intent);
 			finish();
 		}
-			break;
+		break;
 		case 1: {
 			android.os.Process.killProcess(android.os.Process.myPid());
 		}
-			break;
+		break;
 		default:
 			break;
 		}
 		return super.onOptionsItemSelected(item);
 	}
-	
+
 	@Override
 	public void onBackPressed() {
 		// TODO Auto-generated method stub
@@ -132,10 +151,10 @@ public class LuamingOfflineActivity extends Activity implements OnItemClickListe
 		// TODO Auto-generated method stub
 		startGame(gameAPKs.get(arg2).getParent(), gameAPKs.get(arg2).getName());
 	}
-	
+
 	private ArrayList<File> getGameList() {
 		ArrayList<File> apkList = new ArrayList<File>(); 
-		
+
 		File dir = new File(LuamingActivity.mainPath);
 		String[] tokenDirList = dir.list();
 		for (int i = 0; i < tokenDirList.length; i++) {
@@ -146,7 +165,7 @@ public class LuamingOfflineActivity extends Activity implements OnItemClickListe
 					File gameDir = new File(tokenDir.getAbsolutePath() + "/" + gameDirList[j]);
 					if (gameDir.isDirectory()) {
 						FilenameFilter filter = new FilenameFilter() {
-				
+
 							@Override
 							public boolean accept(File dir, String name) {
 								// TODO Auto-generated method stub
@@ -155,7 +174,7 @@ public class LuamingOfflineActivity extends Activity implements OnItemClickListe
 								return false;
 							}
 						};
-						
+
 						File[] apkFiles = gameDir.listFiles(filter);
 						for (int k = 0; k < apkFiles.length; k++)
 							apkList.add(apkFiles[k]);
@@ -165,7 +184,7 @@ public class LuamingOfflineActivity extends Activity implements OnItemClickListe
 		}
 		return apkList;
 	}
-	
+
 	public void startGame(String dir, String apkName) {
 		String orientation = LuamingUpdateUtil.checkOrientation(dir, apkName);
 

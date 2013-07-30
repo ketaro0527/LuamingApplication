@@ -41,7 +41,7 @@ import com.ssm.luaming.web.LuamingWebView;
 public class LuamingActivity extends Activity {
 	public static int downloadFor = LuamingConstant.DOWNLOAD_FOR_INSTALL;
 
-	public static String mainPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/.Luaming";
+	public static String mainPath;
 	public String apkName = "";
 	public String updateName = "";
 	

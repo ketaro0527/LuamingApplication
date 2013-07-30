@@ -17,6 +17,7 @@ import android.webkit.WebViewClient;
 import com.ssm.luaming.LuamingActivity;
 import com.ssm.luaming.LuamingConstant;
 import com.ssm.luaming.dialog.LuamingDialog;
+import com.ssm.luaming.dialog.LuamingOnCancelListener;
 import com.ssm.luaming.dialog.LuamingOnDismissListener;
 import com.ssm.luaming.util.LuamingUpdateUtil;
 
@@ -203,9 +204,10 @@ public class LuamingWebViewClient extends WebViewClient {
 		super.onReceivedError(view, errorCode, description, failingUrl);
 		activity.initWithError = true;
 		view.setVisibility(View.GONE);
-		LuamingDialog dialog = new LuamingDialog(activity, LuamingDialog.LUAMING_DIALOG_STYLE_SINGLE);
+		LuamingDialog dialog = new LuamingDialog(activity, LuamingDialog.LUAMING_DIALOG_STYLE_OK_CANCEL);
 		dialog.setBackCancelable(false);
+		dialog.setOnCancelListener(new LuamingOnCancelListener(LuamingOnCancelListener.LUAMING_CANCEL_TYPE_OFFLINE_MODE, activity));
 		dialog.setOnDismissListener(new LuamingOnDismissListener(LuamingOnDismissListener.LUAMING_DISMISS_TYPE_FINISH));
-		dialog.show("인터넷 연결을 확인하세요.\nLuaming을 종료합니다.");
+		dialog.show("인터넷에 연결되어 있지 않습니다.\n오프라인 모드로 전환할까요?");
 	}
 }
