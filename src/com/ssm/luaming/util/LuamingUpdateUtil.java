@@ -32,8 +32,11 @@ public class LuamingUpdateUtil {
 			return false;
 		
 		File updateFile = new File(updateZipPath);
-		if (!updateFile.exists())
-			return false;
+		if (!updateFile.exists() || updateFile.length() == 0) {
+			updateFile = getUpdateFile(dirPath);
+			if (!updateFile.exists() || updateFile.length() == 0)
+				return false;
+		}
 		
 		File tempFile = new File(tempZipPath);
 		if (tempFile.exists())
@@ -301,6 +304,34 @@ public class LuamingUpdateUtil {
 		if (size == 0 && zeroToDelete)
 			updateFile.delete();
 		return size;
+	}
+	
+	public static File getUpdateFile(String dirPath) {
+		File dir = new File(dirPath);
+		FilenameFilter filter = new FilenameFilter() {
+
+			@Override
+			public boolean accept(File dir, String name) {
+				// TODO Auto-generated method stub
+				if (name != null && name.contains("_Update") && name.endsWith("apk"))
+					return true;
+				return false;
+			}
+		};
+		
+		File[] updateFiles = dir.listFiles(filter);
+		File realUpdateFile = null;
+		if (updateFiles != null) {
+			int length = updateFiles.length;
+			for (int i = 0; i < length; i++) {
+				if (updateFiles[i].length() > 0)
+					realUpdateFile = updateFiles[i];
+				else
+					updateFiles[i].delete();
+			}
+		}
+		
+		return realUpdateFile;
 	}
 	
 	public static File getUpdateFile(String dirPath, int latestVersion) {

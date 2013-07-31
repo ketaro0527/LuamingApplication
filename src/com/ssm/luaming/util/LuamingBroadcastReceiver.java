@@ -42,7 +42,7 @@ public class LuamingBroadcastReceiver extends BroadcastReceiver {
 						if (update != null) {
 							activity.updateName = update.getName();
 							activity.isUpdating = true;
-							activity.handler.sendEmptyMessage(LuamingConstant.UPDATE_START);
+							activity.handler.sendEmptyMessageDelayed(LuamingConstant.UPDATE_START, 500);
 							return;
 						}
 /*						
