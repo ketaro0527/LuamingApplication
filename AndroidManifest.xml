@@ -29,14 +29,14 @@
         </activity>
         <activity
             android:name=".game.Luaming"
-            android:configChanges="orientation"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="landscape"
             android:process="com.ssm.luaming.landscape"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >
         </activity>
         <activity
             android:name=".game.LuamingPortrait"
-            android:configChanges="orientation"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="portrait"
             android:process="com.ssm.luaming.portrait"
             android:theme="@android:style/Theme.NoTitleBar.Fullscreen" >

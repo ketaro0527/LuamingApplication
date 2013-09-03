@@ -66,6 +66,7 @@ public abstract class Cocos2dxActivity extends Activity implements Cocos2dxHelpe
     	this.init();
 
 		Cocos2dxHelper.init(this, this);
+		Log.d("Luaming", "Cocos2dxActivity onCreate");
 	}
 
 	// ===========================================================

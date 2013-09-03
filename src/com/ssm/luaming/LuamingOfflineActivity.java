@@ -97,7 +97,7 @@ public class LuamingOfflineActivity extends Activity implements OnItemClickListe
 			dialog.show("SD카드가 없습니다.\nLuaming을 종료합니다.");
 		}
 
-		LuamingActivity.mainPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/.Luaming";
+		LuamingActivity.mainPath = getExternalFilesDir(null).getAbsolutePath() + "/.Luaming";
 
 		setContentView(R.layout.offline_layout);
 		gameListView = (ListView)findViewById(R.id.offline_game_list);

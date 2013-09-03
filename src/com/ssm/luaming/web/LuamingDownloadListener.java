@@ -53,7 +53,7 @@ public class LuamingDownloadListener implements DownloadListener{
 		request.setTitle(fileName);
 		request.setDescription(url);
 		request.setMimeType(mimeType);
-		request.setDestinationInExternalPublicDir( "/.Luaming/" + activity.accessToken + "/" + activity.packageName, activity.updateName);
+		request.setDestinationInExternalPublicDir( "/Android/data/com.ssm.luaming/files/.Luaming/" + activity.accessToken + "/" + activity.packageName, activity.updateName);
 
 		// 다운로드 매니저에 요청 등록
 		activity.downloadId = downloadManager.enqueue(request);

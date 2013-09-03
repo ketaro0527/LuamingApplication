@@ -102,7 +102,7 @@ public class LuamingActivity extends Activity {
 			dialog.show("SD카드가 없습니다.\nLuaming을 종료합니다.");
 		}
 		
-		mainPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/.Luaming";
+		mainPath = getExternalFilesDir(null).getAbsolutePath() + "/.Luaming";
 
 		File LuamingDir = new File(mainPath);
 		if (!LuamingDir.exists())
