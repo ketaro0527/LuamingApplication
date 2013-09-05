@@ -12,7 +12,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
 import com.ssm.luaming.LuamingActivity;
-import com.ssm.luaming.LuamingConstant;
 import com.ssm.luaming.dialog.LuamingDialog;
 import com.ssm.luaming.dialog.LuamingOnCancelListener;
 import com.ssm.luaming.dialog.LuamingOnDismissListener;
@@ -42,21 +41,11 @@ public class LuamingBroadcastReceiver extends BroadcastReceiver {
 						if (update != null) {
 							activity.updateName = update.getName();
 							activity.isUpdating = true;
-							activity.handler.sendEmptyMessageDelayed(LuamingConstant.UPDATE_START, 500);
+							activity.updatePackage();//activity.handler.sendEmptyMessageDelayed(LuamingConstant.UPDATE_START, 500);
+							downloadManager.remove(activity.downloadId);
+							activity.downloadId = -1;
 							return;
 						}
-/*						
-						if (LuamingUpdateUtil.getFileSize(LuamingActivity.mainPath + "/" + activity.accessToken + "/" + activity.packageName, activity.updateName, true) == 0) {
-							activity.updateName = activity.updateName.split("\\.")[0] + "-1.apk";
-
-							if (LuamingUpdateUtil.getFileSize(LuamingActivity.mainPath + "/" + activity.accessToken + "/" + activity.packageName, activity.updateName, false) != 0) {
-								activity.handler.sendEmptyMessage(LuamingConstant.UPDATE_START);
-							}
-						}
-
-						else
-							activity.handler.sendEmptyMessage(LuamingConstant.UPDATE_START);
-*/
 					}
 				}
 			}

@@ -3,13 +3,14 @@ package com.ssm.luaming.web;
 import android.annotation.SuppressLint;
 import android.app.DownloadManager;
 import android.app.DownloadManager.Request;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.net.Uri;
 import android.webkit.DownloadListener;
 import android.webkit.MimeTypeMap;
 
 import com.ssm.luaming.LuamingActivity;
+import com.ssm.luaming.dialog.LuamingProgressDialog;
+import com.ssm.luaming.util.LuamingDownloadTask;
 
 @SuppressLint("DefaultLocale")
 public class LuamingDownloadListener implements DownloadListener{
@@ -17,15 +18,12 @@ public class LuamingDownloadListener implements DownloadListener{
 	private LuamingActivity activity;
 	
 	public LuamingDownloadListener(LuamingActivity act) {
-		activity = act;
+		activity = act;	
 	}
 
 	@Override
 	public void onDownloadStart(String url, String userAgent,
 			String contentDisposition, String mimetype, long contentLength) {
-		// TODO Auto-generated method stub
-		activity.pd = ProgressDialog.show(activity, "Downloading", "Please wait...", true);
-		activity.pd.setCancelable(false);
 
 		MimeTypeMap mtm = MimeTypeMap.getSingleton();
 		DownloadManager downloadManager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
@@ -57,6 +55,15 @@ public class LuamingDownloadListener implements DownloadListener{
 
 		// 다운로드 매니저에 요청 등록
 		activity.downloadId = downloadManager.enqueue(request);
+		
+		// Progress Dialog
+		activity.pd = new LuamingProgressDialog(activity);
+		
+		LuamingDownloadTask downTask = new LuamingDownloadTask(activity);
+		
+		activity.pd.setAsyncTask(downTask);
+		activity.pd.updateText(fileName);
+		activity.pd.show("Downloading...", fileName);		
 	}
 
 }

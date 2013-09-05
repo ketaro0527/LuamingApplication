@@ -64,7 +64,8 @@ public class LuamingOfflineActivity extends Activity implements OnItemClickListe
 					for (int i = 0; i < gameAPKs.size(); i++) {
 						list.add(gameAPKs.get(i).getName());
 					}
-					ArrayAdapter<String> adapter = new ArrayAdapter<String>(LuamingOfflineActivity.this, android.R.layout.simple_list_item_1, list);
+					//ArrayAdapter<String> adapter = new ArrayAdapter<String>(LuamingOfflineActivity.this, android.R.layout.simple_list_item_1, list);
+					LuamingOfflineListAdapter adapter = new LuamingOfflineListAdapter(LuamingOfflineActivity.this, gameAPKs);
 					gameListView.setAdapter(adapter);
 					gameListView.setOnItemClickListener(LuamingOfflineActivity.this);
 				}

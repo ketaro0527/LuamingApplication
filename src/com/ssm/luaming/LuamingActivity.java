@@ -6,7 +6,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DownloadManager;
 import android.app.DownloadManager.Query;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -17,7 +16,6 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.Message;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,15 +23,16 @@ import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.ssm.luaming.dialog.LuamingDialog;
 import com.ssm.luaming.dialog.LuamingOnCancelListener;
 import com.ssm.luaming.dialog.LuamingOnDismissListener;
+import com.ssm.luaming.dialog.LuamingProgressDialog;
 import com.ssm.luaming.game.Luaming;
 import com.ssm.luaming.game.LuamingPortrait;
 import com.ssm.luaming.util.LuamingBroadcastReceiver;
-import com.ssm.luaming.util.LuamingUpdateThread;
+import com.ssm.luaming.util.LuamingDownloadTask;
+import com.ssm.luaming.util.LuamingUpdateTask;
 import com.ssm.luaming.util.LuamingUpdateUtil;
 import com.ssm.luaming.web.LuamingWebView;
 
@@ -64,10 +63,10 @@ public class LuamingActivity extends Activity {
 
 	public boolean initWithError = false;
 
-	public ProgressDialog pd;
+	public LuamingProgressDialog pd = null;
 
 	private LuamingBroadcastReceiver broadcastReceiver = null;
-
+/*
 	public Handler handler = new Handler() {
 		@Override
 		public void handleMessage(Message m) {
@@ -89,7 +88,7 @@ public class LuamingActivity extends Activity {
 			}
 		}
 	};
-
+*/
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -215,6 +214,7 @@ public class LuamingActivity extends Activity {
 				dialog.setBackCancelable(false);
 				dialog.setOnCancelListener(new LuamingOnCancelListener(LuamingOnCancelListener.LUAMING_CANCEL_TYPE_UPDATE_START, this));
 				dialog.show(msg);
+				downloadManager.remove(downloadId);
 				downloadId = -1;
 				return;
 			}
@@ -224,8 +224,15 @@ public class LuamingActivity extends Activity {
 			query.setFilterByStatus(DownloadManager.STATUS_RUNNING);
 			cursor = downloadManager.query(query);
 			if (cursor.getCount() > 0) {
-				pd = ProgressDialog.show(LuamingActivity.this, "Downloading", "Please wait...", true);
-				pd.setCancelable(false);
+				cursor.moveToFirst();
+				String title = cursor.getString(cursor.getColumnIndex(DownloadManager.COLUMN_TITLE));
+				cursor.close();
+				
+				LuamingDownloadTask downTask = new LuamingDownloadTask(this);
+				
+				pd = new LuamingProgressDialog(this);
+				pd.setAsyncTask(downTask);
+				pd.show("Downloading...", title);
 			}
 		}
 	}
@@ -257,11 +264,23 @@ public class LuamingActivity extends Activity {
 	}
 
 	public void updatePackage() {
-		pd = ProgressDialog.show(LuamingActivity.this, "Update", "Please wait...", true);
-		pd.setCancelable(false);
-
-		LuamingUpdateThread thread = new LuamingUpdateThread(this);
-		thread.start();
+		if (pd != null && pd.isShowing()) {
+			pd.dismiss();
+			pd = null;
+			LuamingProgressDialog.isDialogShowing = false;
+		}
+		
+		LuamingUpdateTask updateTask = new LuamingUpdateTask(this);
+		
+		if (downloadFor == LuamingConstant.DOWNLOAD_FOR_UPDATE) {
+			pd = new LuamingProgressDialog(this);
+			pd.setAsyncTask(updateTask);
+			pd.show("Updating...", "");
+		}
+		else
+			updateTask.execute();
+		//LuamingUpdateThread thread = new LuamingUpdateThread(this);
+		//thread.start();
 	}
 
 	public void startGame() {

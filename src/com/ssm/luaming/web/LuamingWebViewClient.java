@@ -123,7 +123,7 @@ public class LuamingWebViewClient extends WebViewClient {
 							if (update != null) {
 								activity.updateName = update.getName();
 								activity.isUpdating = true;
-								activity.handler.sendEmptyMessage(LuamingConstant.UPDATE_START);
+								activity.updatePackage();//activity.handler.sendEmptyMessage(LuamingConstant.UPDATE_START);
 								return true;
 							}
 							
@@ -151,7 +151,7 @@ public class LuamingWebViewClient extends WebViewClient {
 							activity.updateName = update.getName();
 							activity.isUpdating = true;
 							LuamingActivity.downloadFor = LuamingConstant.DOWNLOAD_FOR_REPLACE;
-							activity.handler.sendEmptyMessage(LuamingConstant.UPDATE_START);
+							activity.updatePackage();//activity.handler.sendEmptyMessage(LuamingConstant.UPDATE_START);
 							return true;
 						}
 						

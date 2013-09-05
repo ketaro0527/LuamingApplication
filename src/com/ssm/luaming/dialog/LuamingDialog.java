@@ -17,7 +17,7 @@ public class LuamingDialog extends Dialog implements android.view.View.OnClickLi
 	private LuamingImageButton btnOK;
 	private LuamingImageButton btnCancel;
 	private TextView dialogText;
-	private boolean isCancelable = true;
+	private boolean isCancelable = false;
 	private boolean isClicked = false;
 
 	public static boolean isDialogShowing = false;

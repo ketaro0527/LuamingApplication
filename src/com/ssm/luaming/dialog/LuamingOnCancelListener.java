@@ -5,7 +5,6 @@ import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
 
 import com.ssm.luaming.LuamingActivity;
-import com.ssm.luaming.LuamingConstant;
 import com.ssm.luaming.LuamingOfflineActivity;
 
 public class LuamingOnCancelListener implements OnCancelListener{
@@ -38,7 +37,7 @@ public class LuamingOnCancelListener implements OnCancelListener{
 			break;
 		case LUAMING_CANCEL_TYPE_UPDATE_START: {
 			if (luamingDialog.canClose() && activity != null)
-				activity.handler.sendEmptyMessage(LuamingConstant.UPDATE_START);
+				activity.updatePackage();//activity.handler.sendEmptyMessage(LuamingConstant.UPDATE_START);
 		}
 			break;
 		case LUAMING_CANCEL_TYPE_OFFLINE_MODE: {
