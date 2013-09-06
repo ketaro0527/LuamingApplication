@@ -21,7 +21,7 @@ import com.ssm.luaming.dialog.LuamingOnCancelListener;
 import com.ssm.luaming.dialog.LuamingOnDismissListener;
 import com.ssm.luaming.util.LuamingUpdateUtil;
 
-@SuppressLint("HandlerLeak")
+@SuppressLint({ "HandlerLeak", "DefaultLocale" })
 public class LuamingWebViewClient extends WebViewClient {
 	public LuamingActivity activity;
 	public WebView view;
@@ -30,10 +30,10 @@ public class LuamingWebViewClient extends WebViewClient {
 		public void handleMessage(Message msg) {
 			switch(msg.what) {
 			case 0:
-				view.loadUrl("javascript: Luaming.initAndRedirectToHome()");
+				view.loadUrl("javascript: Luaming.initAndRedirectToHome(\"" + LuamingConstant.LUAMING_APPLICATION_VERSION + "\")");
 				break;
 			case 1:
-				view.loadUrl("javascript: Luaming.initAndRedirectToMain(" + activity.accountId + ", \"" + activity.accessToken + "\")");
+				view.loadUrl("javascript: Luaming.initAndRedirectToMain(" + activity.accountId + ", \"" + activity.accessToken + "\", \"" + LuamingConstant.LUAMING_APPLICATION_VERSION + "\")");
 				break;
 			case 2:
 				view.loadUrl("javascript: Luaming.setCanGoBackAndLuamingBrowser()");
@@ -86,8 +86,46 @@ public class LuamingWebViewClient extends WebViewClient {
 					editor.clear();
 					editor.commit();
 
-					view.loadUrl("javascript: Luaming.initLocalStorage()");
-					view.loadUrl("javascript: Luaming.redirectToHome()");
+					view.loadUrl("javascript: Luaming.initAndRedirectToHome(\"" + LuamingConstant.LUAMING_APPLICATION_VERSION + "\")");
+				}
+				else if (url.contains("gameinfo")) {
+					String[] temp = url.split("@");
+					JSONObject projectInfo = new JSONObject(temp[temp.length-1]);
+					String packageName = projectInfo.getString("package_name");
+					String projectName = projectInfo.getString("project_name");
+					
+					File mainDir = new File(LuamingActivity.mainPath);
+					if (!mainDir.exists())
+						mainDir.mkdir();
+					File dir = new File(LuamingActivity.mainPath + "/" + activity.accessToken);
+					if (!dir.exists())
+						dir.mkdir();
+					
+					String currentVersionName = LuamingUpdateUtil.checkVersionName(LuamingActivity.mainPath + "/" + activity.accessToken + "/" + packageName, projectName + ".apk");
+					
+					view.loadUrl("javascript: Luaming.setCurrentVersionName(\"" + currentVersionName + "\")");
+				}
+				else if (url.contains("fileinfo")) {
+					String[] temp = url.split("@");
+					JSONObject fileInfo = new JSONObject(temp[temp.length-1]);
+					String filePath = fileInfo.getString("path");
+					String fileSize = fileInfo.getString("file_size");
+					double fileBytes = Double.parseDouble(fileSize);
+					int unit = 0;
+					while(fileBytes > 1024) {
+						fileBytes /= 1024;
+						unit++;
+					}
+					fileSize = String.format("%.2f ", fileBytes) + LuamingConstant.LUAMING_FILE_SIZE_UNIT[unit];
+					
+					LuamingDialog dialog = new LuamingDialog(activity, LuamingDialog.LUAMING_DIALOG_STYLE_OK_CANCEL);
+					dialog.setOnCancelListener(new LuamingOnCancelListener(LuamingOnCancelListener.LUAMING_CANCEL_TYPE_DOWNLOAD, view, filePath));
+					if (LuamingActivity.downloadFor == LuamingConstant.DOWNLOAD_FOR_UPDATE) {
+						dialog.show("업데이트 파일의 용량은\n" + fileSize + " 입니다\n다운로드하시겠습니까?");
+					}
+					else {
+						dialog.show("게임 패키지의 용량은\n" + fileSize + " 입니다\n다운로드하시겠습니까?");
+					}
 				}
 				else if (url.contains("download")) {
 					String[] temp = url.split("@");

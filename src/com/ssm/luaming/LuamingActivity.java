@@ -207,6 +207,16 @@ public class LuamingActivity extends Activity {
 				pd.show("Downloading...", title);
 			}
 		}
+		else {
+			if (mainPath != null && mainPath.length() > 0
+					&& accessToken != null && accessToken.length() > 0
+					&& packageName != null && packageName.length() > 0
+					&& apkName != null && apkName.length() > 0 ){
+				String currentVersionName = LuamingUpdateUtil.checkVersionName(mainPath + "/" + accessToken + "/" + packageName, apkName);
+			
+				webview.loadUrl("javascript: Luaming.setCurrentVersionName(\"" + currentVersionName + "\")");
+			}
+		}
 	}
 
 	@Override

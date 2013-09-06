@@ -17,4 +17,13 @@ public class LuamingConstant {
 	public static final int DOWNLOAD_FOR_REPLACE = 1;
 	public static final int DOWNLOAD_FOR_UPDATE = 2;
 	
+	public static final String LUAMING_APPLICATION_VERSION = "1.0.1";
+	
+	public static final String[] LUAMING_FILE_SIZE_UNIT = {
+		"Bytes",
+		"KB",
+		"MB",
+		"GB",
+		"TB"
+	};
 }
