@@ -26,7 +26,6 @@ public class LuamingDialog extends Dialog implements android.view.View.OnClickLi
 
 	public LuamingDialog(Context context, int type) {
 		super(context);
-		// TODO Auto-generated constructor stub
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 
 		dialogType = type;
@@ -41,7 +40,6 @@ public class LuamingDialog extends Dialog implements android.view.View.OnClickLi
 
 	@Override
 	public void onClick(View v) {
-		// TODO Auto-generated method stub
 		if (dialogType == LUAMING_DIALOG_STYLE_SINGLE) {
 			if (v == btnOK) {
 				isClicked = true;

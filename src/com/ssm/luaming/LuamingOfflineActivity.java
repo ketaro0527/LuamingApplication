@@ -64,7 +64,6 @@ public class LuamingOfflineActivity extends Activity implements OnItemClickListe
 					for (int i = 0; i < gameAPKs.size(); i++) {
 						list.add(gameAPKs.get(i).getName());
 					}
-					//ArrayAdapter<String> adapter = new ArrayAdapter<String>(LuamingOfflineActivity.this, android.R.layout.simple_list_item_1, list);
 					LuamingOfflineListAdapter adapter = new LuamingOfflineListAdapter(LuamingOfflineActivity.this, gameAPKs);
 					gameListView.setAdapter(adapter);
 					gameListView.setOnItemClickListener(LuamingOfflineActivity.this);
@@ -87,7 +86,6 @@ public class LuamingOfflineActivity extends Activity implements OnItemClickListe
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 
 		// 외장 메모리 확인
@@ -106,14 +104,12 @@ public class LuamingOfflineActivity extends Activity implements OnItemClickListe
 
 	@Override
 	protected void onResume() {
-		// TODO Auto-generated method stub
 		super.onResume();
 		handler.sendEmptyMessage(FIND_GAME_LIST);
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// TODO Auto-generated method stub
 		menu.add(0, 0, 0, "온라인 모드");
 		menu.add(0, 1, 0, "종료하기");
 		return super.onCreateOptionsMenu(menu);
@@ -121,7 +117,6 @@ public class LuamingOfflineActivity extends Activity implements OnItemClickListe
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// TODO Auto-generated method stub
 		switch(item.getItemId()) {
 		case 0: {
 			Intent intent = new Intent(this, LuamingActivity.class);
@@ -141,7 +136,6 @@ public class LuamingOfflineActivity extends Activity implements OnItemClickListe
 
 	@Override
 	public void onBackPressed() {
-		// TODO Auto-generated method stub
 		LuamingDialog dialog = new LuamingDialog(this, LuamingDialog.LUAMING_DIALOG_STYLE_OK_CANCEL);
 		dialog.setOnCancelListener(new LuamingOnCancelListener(LuamingOnCancelListener.LUAMING_CANCEL_TYPE_FINISH));
 		dialog.show("종료하시겠습니까?");
@@ -149,7 +143,6 @@ public class LuamingOfflineActivity extends Activity implements OnItemClickListe
 
 	@Override
 	public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-		// TODO Auto-generated method stub
 		startGame(gameAPKs.get(arg2).getParent(), gameAPKs.get(arg2).getName());
 	}
 
@@ -169,7 +162,6 @@ public class LuamingOfflineActivity extends Activity implements OnItemClickListe
 
 							@Override
 							public boolean accept(File dir, String name) {
-								// TODO Auto-generated method stub
 								if (name != null && !name.contains("_Update") && !name.contains("temp") && name.endsWith("apk"))
 									return true;
 								return false;

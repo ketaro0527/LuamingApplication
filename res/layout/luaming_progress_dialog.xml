@@ -33,6 +33,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="10"
         android:layout_marginLeft="15dp"
+        android:progressDrawable="@drawable/luaming_progress"
         style="@android:style/Widget.ProgressBar.Horizontal"/>
     
     <TextView

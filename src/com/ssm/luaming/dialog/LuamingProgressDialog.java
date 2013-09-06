@@ -103,7 +103,6 @@ public class LuamingProgressDialog extends Dialog implements OnDismissListener {
 
 	@Override
 	public void onDismiss(DialogInterface dialog) {
-		// TODO Auto-generated method stub
 		isDialogShowing = false;
 		cancelAsyncTask();
 	}

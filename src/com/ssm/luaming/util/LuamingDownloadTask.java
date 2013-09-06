@@ -53,7 +53,6 @@ public class LuamingDownloadTask extends LuamingAsyncTask {
 	
 	@Override
 	protected void onProgressUpdate(Integer... values) {
-		// TODO Auto-generated method stub
 		int progress = values[0];
 		if (activity.pd != null && activity.pd.isShowing())
 			activity.pd.updateProgress(progress);

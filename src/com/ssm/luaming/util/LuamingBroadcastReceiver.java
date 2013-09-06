@@ -41,7 +41,7 @@ public class LuamingBroadcastReceiver extends BroadcastReceiver {
 						if (update != null) {
 							activity.updateName = update.getName();
 							activity.isUpdating = true;
-							activity.updatePackage();//activity.handler.sendEmptyMessageDelayed(LuamingConstant.UPDATE_START, 500);
+							activity.updatePackage();
 							downloadManager.remove(activity.downloadId);
 							activity.downloadId = -1;
 							return;

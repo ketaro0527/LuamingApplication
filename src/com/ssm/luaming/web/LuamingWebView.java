@@ -14,12 +14,10 @@ public class LuamingWebView extends WebView {
 
 	public LuamingWebView(Context context) {
 		super(context);
-		// TODO Auto-generated constructor stub
 	}
 	
 	public LuamingWebView(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		// TODO Auto-generated constructor stub
 	}	
 	
 	public void init(LuamingActivity act) {

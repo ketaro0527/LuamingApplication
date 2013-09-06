@@ -38,7 +38,6 @@ public class LuamingUpdateUtil {
 				if (entryName.equals(deleteArray.getString(i)))
 					return true;
 			} catch (JSONException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -111,7 +110,6 @@ public class LuamingUpdateUtil {
 			}
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -148,7 +146,6 @@ public class LuamingUpdateUtil {
 			}
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -185,7 +182,6 @@ public class LuamingUpdateUtil {
 			}
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -209,7 +205,6 @@ public class LuamingUpdateUtil {
 
 			@Override
 			public boolean accept(File dir, String name) {
-				// TODO Auto-generated method stub
 				if (name != null && name.contains("_Update") && name.endsWith("apk"))
 					return true;
 				return false;
@@ -237,7 +232,6 @@ public class LuamingUpdateUtil {
 
 			@Override
 			public boolean accept(File dir, String name) {
-				// TODO Auto-generated method stub
 				if (name != null && name.contains("_Update") && name.endsWith("apk"))
 					return true;
 				return false;

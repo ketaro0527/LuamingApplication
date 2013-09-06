@@ -20,7 +20,6 @@ public class LuamingWebChromeClient extends WebChromeClient {
 	
 	@Override
 	public void onReceivedTitle(WebView view, String title) {
-		// TODO Auto-generated method stub
 		super.onReceivedTitle(view, title);
 		if (title.toLowerCase().contains("found") || title.toLowerCase().contains("forbidden")) {
 			view.setVisibility(View.GONE);
@@ -34,7 +33,6 @@ public class LuamingWebChromeClient extends WebChromeClient {
 	@Override
 	public boolean onJsAlert(WebView view, String url,
 			String message, JsResult result) {
-		// TODO Auto-generated method stub
 		final JsResult finalRes = result;
 
 		//AlertDialog 생성

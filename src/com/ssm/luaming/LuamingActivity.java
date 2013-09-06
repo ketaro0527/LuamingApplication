@@ -36,7 +36,7 @@ import com.ssm.luaming.util.LuamingUpdateTask;
 import com.ssm.luaming.util.LuamingUpdateUtil;
 import com.ssm.luaming.web.LuamingWebView;
 
-@SuppressLint({ "HandlerLeak", "DefaultLocale", "SetJavaScriptEnabled" })
+@SuppressLint({ "DefaultLocale", "SetJavaScriptEnabled" })
 public class LuamingActivity extends Activity {
 	public static int downloadFor = LuamingConstant.DOWNLOAD_FOR_INSTALL;
 
@@ -66,29 +66,7 @@ public class LuamingActivity extends Activity {
 	public LuamingProgressDialog pd = null;
 
 	private LuamingBroadcastReceiver broadcastReceiver = null;
-/*
-	public Handler handler = new Handler() {
-		@Override
-		public void handleMessage(Message m) {
-			if (pd != null) {
-				pd.dismiss();
-				pd = null;
-			}
 
-			if (m.what == LuamingConstant.UPDATE_START) {
-				LuamingActivity.this.updatePackage();
-			}
-			else if (m.what == LuamingConstant.UPDATE_COMPLETE) {
-				isUpdating = false;
-				LuamingActivity.this.startGame();
-			}
-			else if (m.what == LuamingConstant.UPDATE_FAILED) {
-				isUpdating = false;
-				Toast.makeText(LuamingActivity.this, "Update Failed", Toast.LENGTH_SHORT).show();
-			}
-		}
-	};
-*/
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -141,14 +119,10 @@ public class LuamingActivity extends Activity {
 
 			@Override
 			public void onAnimationRepeat(Animation animation) {
-				// TODO Auto-generated method stub
-
 			}
 
 			@Override
 			public void onAnimationStart(Animation animation) {
-				// TODO Auto-generated method stub
-
 			}
 		});
 		animation.setDuration(2000);
@@ -157,7 +131,6 @@ public class LuamingActivity extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		// TODO Auto-generated method stub
 		menu.add(0, 0, 0, "오프라인 모드");
 		menu.add(0, 1, 0, "종료하기");
 		return super.onCreateOptionsMenu(menu);
@@ -165,7 +138,6 @@ public class LuamingActivity extends Activity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// TODO Auto-generated method stub
 		switch(item.getItemId()) {
 		case 0: {
 			Intent intent = new Intent(this, LuamingOfflineActivity.class);
@@ -252,7 +224,6 @@ public class LuamingActivity extends Activity {
 
 	@Override
 	public void onBackPressed() {
-		// TODO Auto-generated method stub
 		if (webview != null && !canGoBack) {
 			LuamingDialog dialog = new LuamingDialog(this, LuamingDialog.LUAMING_DIALOG_STYLE_OK_CANCEL);
 			dialog.setOnCancelListener(new LuamingOnCancelListener(LuamingOnCancelListener.LUAMING_CANCEL_TYPE_FINISH));
@@ -279,8 +250,6 @@ public class LuamingActivity extends Activity {
 		}
 		else
 			updateTask.execute();
-		//LuamingUpdateThread thread = new LuamingUpdateThread(this);
-		//thread.start();
 	}
 
 	public void startGame() {

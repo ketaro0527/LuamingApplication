@@ -27,7 +27,6 @@ public class LuamingOnCancelListener implements OnCancelListener{
 	
 	@Override
 	public void onCancel(DialogInterface dialog) {
-		// TODO Auto-generated method stub
 		LuamingDialog luamingDialog = (LuamingDialog)dialog;
 		switch(type) {
 		case LUAMING_CANCEL_TYPE_FINISH: {
@@ -37,7 +36,7 @@ public class LuamingOnCancelListener implements OnCancelListener{
 			break;
 		case LUAMING_CANCEL_TYPE_UPDATE_START: {
 			if (luamingDialog.canClose() && activity != null)
-				activity.updatePackage();//activity.handler.sendEmptyMessage(LuamingConstant.UPDATE_START);
+				activity.updatePackage();
 		}
 			break;
 		case LUAMING_CANCEL_TYPE_OFFLINE_MODE: {

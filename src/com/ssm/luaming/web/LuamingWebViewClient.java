@@ -50,7 +50,6 @@ public class LuamingWebViewClient extends WebViewClient {
 
 	@Override
 	public boolean shouldOverrideUrlLoading(WebView view, String url) {
-		// TODO Auto-generated method stub
 		if (url.startsWith("luaming")) {
 			try {
 				if (url.contains("account")) {
@@ -123,7 +122,7 @@ public class LuamingWebViewClient extends WebViewClient {
 							if (update != null) {
 								activity.updateName = update.getName();
 								activity.isUpdating = true;
-								activity.updatePackage();//activity.handler.sendEmptyMessage(LuamingConstant.UPDATE_START);
+								activity.updatePackage();
 								return true;
 							}
 							
@@ -151,7 +150,7 @@ public class LuamingWebViewClient extends WebViewClient {
 							activity.updateName = update.getName();
 							activity.isUpdating = true;
 							LuamingActivity.downloadFor = LuamingConstant.DOWNLOAD_FOR_REPLACE;
-							activity.updatePackage();//activity.handler.sendEmptyMessage(LuamingConstant.UPDATE_START);
+							activity.updatePackage();
 							return true;
 						}
 						
@@ -167,7 +166,6 @@ public class LuamingWebViewClient extends WebViewClient {
 				}
 
 			} catch (JSONException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			return true;
@@ -180,7 +178,6 @@ public class LuamingWebViewClient extends WebViewClient {
 
 	@Override
 	public void onPageFinished(WebView view, String url) {
-		// TODO Auto-generated method stub
 		super.onPageFinished(view, url);
 		this.view = view;
 		if (activity.isFirstTime) {
@@ -200,7 +197,6 @@ public class LuamingWebViewClient extends WebViewClient {
 	@Override
 	public void onReceivedError(WebView view, int errorCode,
 			String description, String failingUrl) {
-		// TODO Auto-generated method stub
 		super.onReceivedError(view, errorCode, description, failingUrl);
 		activity.initWithError = true;
 		view.setVisibility(View.GONE);

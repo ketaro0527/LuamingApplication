@@ -23,7 +23,6 @@ public class LuamingOnDismissListener implements OnDismissListener{
 
 	@Override
 	public void onDismiss(DialogInterface dialog) {
-		// TODO Auto-generated method stub
 		LuamingDialog luamingDialog = (LuamingDialog)dialog;
 		switch(type) {
 		case LUAMING_DISMISS_TYPE_FINISH: {

@@ -10,7 +10,6 @@ public class LuamingImageButton extends ImageView {
 
 	public LuamingImageButton( Context context, AttributeSet attrs ) {
 		super( context, attrs );
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
