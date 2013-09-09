@@ -23,6 +23,7 @@ THE SOFTWARE.
  ****************************************************************************/
 package org.cocos2dx.lib;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 
@@ -33,6 +34,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.res.AssetManager;
 import android.os.Build;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
 
@@ -94,6 +96,8 @@ public class Cocos2dxHelper {
 	{
 		sApkPath = pApkPath;
 		nativeSetApkPath(pApkPath);
+		sFileDirectory = new File(pApkPath).getParent();
+		Log.d("Luaming", "sFileDir: " + sFileDirectory);
 	}
 	
 	public static String getApkPath()
